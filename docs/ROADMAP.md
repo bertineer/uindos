@@ -8,7 +8,7 @@
 | M1 — Source audit | Source-linked inventory of WinSux, Win11Debloat, WinUtil and the desktop candidates | Operations triaged by risk, edition and supported status |
 | M2 — Read-only baseline | Windows 11 capability probe, installed/provisioned package inventory and baseline report | Implemented in merged PR #3; Windows-hosted runner CI passed; dedicated Windows 11 Pro VM validation pending |
 | M3 — Transactional core | Plan/dry-run, exact state capture, log, apply/verify, guarded undo, idempotence | Merged PR #4, sandbox CI passed; dedicated Windows 11 Pro VM validation pending |
-| M4 — Privacy / debloat | Curated policy and app removals, Copilot mitigation, Edge/browser removal with WebView2 preserved | PR #5 merged (3 current-user privacy values); PR #6 proposes five current-user consumer AppX removals; deprovisioning, Edge and larger OS changes not yet implemented |
+| M4 — Privacy / debloat | Curated policy and app removals, Copilot mitigation, Edge/browser removal with WebView2 preserved | PR #5 merged (3 current-user privacy values); PR #6 merged 5 current-user AppX removals; PR #7 repaired Windows 11 Pro 26H2 provisioned AppX inventory; PR #8 proposes 21 curated consumer/media AppX removals and separate new-user deprovisioning (VM apply acceptance pending) |
 | M5 — Desktop | One tiler, Alacritty, private browser, shell, launcher, theme and shortcuts | Normal-user process model and reliable Explorer fallback |
 | M6 — Performance | Curated measurable optimizations | No unexplained security/servicing tradeoffs; benchmark results |
 | M7 — Reconciliation | Post-update drift report and scoped remediation | Update compatibility, duplicate-safe and no unexpected reinstalls |
