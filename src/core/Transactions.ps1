@@ -194,6 +194,13 @@ function Invoke-UindosApply {
             [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
             foreach ($step in $tx.steps) {
                 if (-not $step.changeRequired) { continue }
+                # Another program may change the value between planning and this step.
+                # Refuse to overwrite state we did not snapshot.
+                $preWrite = & $Adapter.Read $step.action.path $step.action.name
+                if ($null -eq $preWrite -or
+                    -not (Test-UindosStateEqual -Left $preWrite -Right $step.prior)) {
+                    throw 'State changed after snapshot; refusing to overwrite drift.'
+                }
                 $step.phase = 'writing'
                 [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
                 Set-UindosState -Adapter $Adapter -Action $step.action -State $step.desired
