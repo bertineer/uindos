@@ -112,22 +112,3 @@ function New-UindosTaskbarAdapter {
         }
     }
 }
- -or [long]$Value -gt [int]::MaxValue) {
-                throw 'Taskbar adapter only writes DWORD values.'
-            }
-            if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
-                New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
-            }
-            New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType DWord -Value $Value -Force -ErrorAction Stop | Out-Null
-        }
-        Remove = {
-            param([string]$Path, [string]$Name)
-            Assert-UindosTaskbarTarget -Path $Path -Name $Name
-            if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) { return }
-            $key = Get-Item -LiteralPath $Path -ErrorAction Stop
-            if (@($key.GetValueNames()) -ccontains $Name) {
-                Remove-ItemProperty -LiteralPath $Path -Name $Name -ErrorAction Stop
-            }
-        }
-    }
-}
