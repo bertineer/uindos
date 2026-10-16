@@ -4,7 +4,7 @@
 
 uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](https://omarchy.org/) and [Hyprland](https://hyprland.org/). The goal is to strip away unwanted Microsoft consumer experiences and rebuild Windows as a lean, keyboard-driven desktop—without sacrificing the ability to receive Windows security updates.
 
-**Status: early implementation.** A Windows baseline collector and sandbox transaction engine are available. The first three per-user privacy defaults are proposed in PR #5, with dry-run as the default. PR #6 proposes the first narrowly scoped current-user Copilot and consumer AppX removals; Edge removal and desktop installation remain future work.
+**Status: early implementation.** A Windows baseline collector and sandbox transaction engine are available. The first three per-user privacy defaults are proposed in PR #5, with dry-run as the default. PR #6 added current-user consumer AppX removal, PR #7 fixed PowerShell 7 provisioning inventory, and PR #8 proposes an expanded consumer/media app allowlist plus separate elevated deprovisioning for new users. Edge removal and the desktop are future work.
 
 ## Philosophy
 

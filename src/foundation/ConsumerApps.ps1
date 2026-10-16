@@ -1,17 +1,41 @@
-# Opinionated consumer AppX selection. Current user only; no provisioning or OS internals.
-# Uninstall is not the registry transaction contract: package data may be removed.
+# Opinionated current-user consumer/media AppX operations. New-user provisioning is separate.
+# No frameworks, codecs, servicing APIs or other Windows internals removed.
 . (Join-Path $PSScriptRoot '..\core\Transactions.ps1')
 
 function Get-UindosConsumerAppNames {
-    # Microsoft Copilot and four dispensable Windows consumer applications.
-    # Do not add Store, WebView2, Winget, Xbox, Photos, frameworks, runtime packages.
+    # Only these explicit identities are eligible; never wildcard/remove-all.
     return @(
         'Microsoft.Copilot'
         'Microsoft.BingNews'
         'Microsoft.BingWeather'
         'Microsoft.WindowsFeedbackHub'
         'Microsoft.MicrosoftSolitaireCollection'
+        'Clipchamp.Clipchamp'
+        'Microsoft.ZuneMusic'
+        'Microsoft.ZuneVideo'
+        'Microsoft.WindowsSoundRecorder'
+        'Microsoft.WindowsCamera'
+        'Microsoft.Windows.Photos'
+        'Microsoft.Paint'
+        'Microsoft.MicrosoftOfficeHub'
+        'Microsoft.OutlookForWindows'
+        'MSTeams'
+        'Microsoft.MicrosoftStickyNotes'
+        'Microsoft.Todos'
+        'Microsoft.PowerAutomateDesktop'
+        'Microsoft.Windows.DevHome'
+        'Microsoft.YourPhone'
+        'Microsoft.WindowsAlarms'
     )
+}
+
+function Get-UindosConsumerAppPublisherId {
+    param([Parameter(Mandatory)][string]$PackageName)
+    if (@(Get-UindosConsumerAppNames) -cnotcontains $PackageName) {
+        throw 'Package is outside curated consumer app list.'
+    }
+    if ($PackageName -ceq 'Clipchamp.Clipchamp') { return 'yxz26nhyzhsrt' }
+    return '8wekyb3d8bbwe'
 }
 
 function Assert-UindosSupportedAppRemovalOs {
@@ -83,7 +107,8 @@ function Test-UindosAppxIdentity {
     param([string]$PackageName,[string]$PackageFullName)
     if (@(Get-UindosConsumerAppNames) -cnotcontains $PackageName) { return $false }
     if ([string]::IsNullOrWhiteSpace($PackageFullName)) { return $false }
-    $pattern = '^' + [regex]::Escape($PackageName) + '_[0-9][A-Za-z0-9_.~+-]*__8wekyb3d8bbwe$'
+    $publisher = Get-UindosConsumerAppPublisherId -PackageName $PackageName
+    $pattern = '^' + [regex]::Escape($PackageName) + '_[0-9][A-Za-z0-9_.~+-]*__' + [regex]::Escape($publisher) + '$'
     return [bool]($PackageFullName -cmatch $pattern)
 }
 
@@ -110,7 +135,7 @@ function Get-UindosConsumerAppPlan {
             $fullName = [string]$package.PackageFullName
             $version = [string]$package.Version
             if ([string]$package.Name -cne $name -or
-                [string]$package.PublisherId -cne '8wekyb3d8bbwe' -or
+                [string]$package.PublisherId -cne (Get-UindosConsumerAppPublisherId -PackageName $name) -or
                 -not (Test-UindosAppxIdentity -PackageName $name -PackageFullName $fullName)) {
                 $state = 'blocked'
                 $reason = 'identity-or-publisher-not-recognized'
@@ -191,7 +216,7 @@ function Invoke-UindosConsumerAppRemoval {
             $current = @(& $Provider.Read $item.name)
             if ($current.Count -ne 1 -or
                 [string]$current[0].PackageFullName -cne $item.packageFullName -or
-                [string]$current[0].PublisherId -cne '8wekyb3d8bbwe' -or
+                [string]$current[0].PublisherId -cne (Get-UindosConsumerAppPublisherId -PackageName $item.name) -or
                 $current[0].IsFramework -or $current[0].IsResourcePackage -or
                 $current[0].NonRemovable) {
                 $item.phase = 'needs-review'

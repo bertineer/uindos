@@ -4,14 +4,20 @@ on:
     branches: [main]
     paths:
       - 'src/foundation/ConsumerApps.ps1'
+      - 'src/foundation/ProvisionedApps.ps1'
       - 'bin/uindos-debloat.ps1'
+      - 'bin/uindos-deprovision.ps1'
       - 'tests/consumer-apps-*.ps1'
+      - 'tests/provisioned-apps-*.ps1'
       - '.github/workflows/consumer-app-tests.yml'
   pull_request:
     paths:
       - 'src/foundation/ConsumerApps.ps1'
+      - 'src/foundation/ProvisionedApps.ps1'
       - 'bin/uindos-debloat.ps1'
+      - 'bin/uindos-deprovision.ps1'
       - 'tests/consumer-apps-*.ps1'
+      - 'tests/provisioned-apps-*.ps1'
       - '.github/workflows/consumer-app-tests.yml'
 permissions:
   contents: read
@@ -26,6 +32,9 @@ jobs:
       - name: Portable mock-only package tests
         shell: pwsh
         run: ./tests/consumer-apps-mock.ps1
+      - name: Mock-only provisioned AppX tests
+        shell: pwsh
+        run: ./tests/provisioned-apps-mock.ps1
       - name: Windows live AppX inventory only (no removal)
         if: runner.os == 'Windows'
         shell: pwsh
