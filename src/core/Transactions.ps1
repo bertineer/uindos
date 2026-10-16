@@ -198,40 +198,88 @@ function Invoke-UindosApply {
             steps = @($plan.actions)
         }
         # This must succeed before changing any registry value.
-        [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
+        try { [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory) }
+        catch {
+            $journalExceptionType = $_.Exception.GetType().Name
+            throw "Apply failed; transaction $($tx.id) remains prepared. action=none stage=journal exceptionType=$journalExceptionType errorCode=journal_failure."
+        }
+        $failureStage = 'journal'
+        $failedActionId = $null
         try {
             $tx.status = 'applying'
+            $failureStage = 'journal'
             [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
             foreach ($step in $tx.steps) {
                 if (-not $step.changeRequired) { continue }
+                $failedActionId = $step.action.id
                 # Another program may change the value between planning and this step.
                 # Refuse to overwrite state we did not snapshot.
+                $failureStage = 'pre-write-read'
                 $preWrite = & $Adapter.Read $step.action.path $step.action.name
                 if ($null -eq $preWrite -or
                     -not (Test-UindosStateEqual -Left $preWrite -Right $step.prior)) {
                     throw 'State changed after snapshot; refusing to overwrite drift.'
                 }
                 $step.phase = 'writing'
+                $failureStage = 'journal'
                 [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
+                $failureStage = 'write'
                 Set-UindosState -Adapter $Adapter -Action $step.action -State $step.desired
+                $failureStage = 'verification'
                 $observed = & $Adapter.Read $step.action.path $step.action.name
                 if (-not (Test-UindosStateEqual -Left $observed -Right $step.desired)) {
-                    throw 'Post-change verification failed.'
+                    throw [InvalidOperationException]::new('Post-change verification failed.')
                 }
                 $step.phase = 'applied'
+                $failureStage = 'journal'
                 [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
             }
             $tx.status = 'applied'
+            $failureStage = 'journal'
             [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
             return [pscustomobject]@{ status = 'applied'; transactionId = $tx.id; changeCount = $plan.changeCount }
         }
         catch {
+            # Snapshot a safe summary before rollback can produce a different error.
+            $originalException = $_.Exception
+            while (($originalException -is [System.Management.Automation.MethodInvocationException] -or
+                    $originalException -is [System.Management.Automation.RuntimeException]) -and
+                   $null -ne $originalException.InnerException) {
+                $originalException = $originalException.InnerException
+            }
+            $originalType = $originalException.GetType().Name
+            $errorCode = if ($failureStage -eq 'journal') { 'journal_failure' }
+                elseif ($failureStage -eq 'pre-write-read') { 'pre_write_read_failed' }
+                elseif ($failureStage -eq 'verification') { 'verification_failed' }
+                elseif ($originalException -is [System.UnauthorizedAccessException]) { 'access_denied' }
+                elseif ($originalException -is [System.IO.IOException]) { 'io_failure' }
+                else { 'operation_failed' }
+            $safeActionId = if ($null -eq $failedActionId) { 'none' } else { [string]$failedActionId }
+            $safeStage = [string]$failureStage
             $tx.status = 'rolling-back'
-            [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
-            $conflicts = Restore-UindosSteps -Transaction $tx -Adapter $Adapter -Directory $JournalDirectory
-            $tx.status = if ($conflicts -eq 0) { 'rolled-back' } else { 'needs-review' }
-            [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
-            throw "Apply failed; transaction $($tx.id) is $($tx.status). Inspect the private journal."
+            $rollbackExceptionType = $null
+            try {
+                [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
+                $conflicts = Restore-UindosSteps -Transaction $tx -Adapter $Adapter -Directory $JournalDirectory
+                $tx.status = if ($conflicts -eq 0) { 'rolled-back' } else { 'needs-review' }
+                [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory)
+            }
+            catch {
+                $rollbackException = $_.Exception
+                while (($rollbackException -is [System.Management.Automation.MethodInvocationException] -or
+                        $rollbackException -is [System.Management.Automation.RuntimeException]) -and
+                       $null -ne $rollbackException.InnerException) {
+                    $rollbackException = $rollbackException.InnerException
+                }
+                $rollbackExceptionType = $rollbackException.GetType().Name
+                # A failed rollback or final journal write cannot be reported as rolled back.
+                $tx.status = 'needs-review'
+                try { [void](Save-UindosJournal -Transaction $tx -Directory $JournalDirectory) }
+                catch { }
+            }
+            $rollbackSummary = if ($null -eq $rollbackExceptionType) { '' }
+                else { " rollbackErrorCode=rollback_failed rollbackExceptionType=$rollbackExceptionType." }
+            throw "Apply failed; transaction $($tx.id) is $($tx.status). action=$safeActionId stage=$safeStage exceptionType=$originalType errorCode=$errorCode.$rollbackSummary Inspect the private journal."
         }
     }
     finally { $lock.Dispose() }
