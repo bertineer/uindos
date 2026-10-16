@@ -93,7 +93,26 @@ function New-UindosTaskbarAdapter {
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
             Assert-UindosTaskbarTarget -Path $Path -Name $Name
-            if ($Kind -cne 'DWord' -or $Value -isnot [int] -or $Value -lt 0) {
+            if ($Kind -cne 'DWord' -or [string]$Value -cnotmatch '^[0-9]+
+                throw 'Taskbar adapter only writes DWORD values.'
+            }
+            if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
+                New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
+            }
+            New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType DWord -Value ([int]$Value) -Force -ErrorAction Stop | Out-Null
+        }
+        Remove = {
+            param([string]$Path, [string]$Name)
+            Assert-UindosTaskbarTarget -Path $Path -Name $Name
+            if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) { return }
+            $key = Get-Item -LiteralPath $Path -ErrorAction Stop
+            if (@($key.GetValueNames()) -ccontains $Name) {
+                Remove-ItemProperty -LiteralPath $Path -Name $Name -ErrorAction Stop
+            }
+        }
+    }
+}
+ -or [long]$Value -gt [int]::MaxValue) {
                 throw 'Taskbar adapter only writes DWORD values.'
             }
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
