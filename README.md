@@ -16,7 +16,7 @@ uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](http
 - **Verify results.** Distinguish settings applied from settings effective; measure before/after footprint and privacy outcomes.
 - **Minimal dependencies, transparent changes.** Auditable sources, explicit version pins/checksums, useful logs, and tested recovery.
 
-See [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command.
+See [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command. The [transaction-engine design](docs/TRANSACTIONS.md) describes the experimental dry-run, journaling, verification and rollback layer; it is not connected to real Windows settings yet.
 
 Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECTURE.md), [decision log](docs/DECISIONS.md), and [roadmap](docs/ROADMAP.md).
 
