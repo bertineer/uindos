@@ -12,6 +12,13 @@ pwsh -NoProfile -File ./bin/uindos-taskbar.ps1 -Undo <transaction-guid>
 
 The command defaults to a read-only plan. Apply journals exact prior values under %LOCALAPPDATA%\uindos\transactions\taskbar-v1; undo restores the prior absent or DWORD state unless another actor changed it. Sign out/in if Explorer has not refreshed the taskbar. Group policy may override these personal preferences. Weather on the taskbar is a Windows Widgets surface independent of the Microsoft.BingWeather application.
 
+On the Windows 11 Pro build 26300.9711 test VM, a previous Widgets write
+failed with `UnauthorizedAccessException` and rolled back the transaction;
+Search and Task View were not attempted. Apply errors report a sanitized
+action ID, stage, exception type and error code after rollback. This improves
+diagnostics; it does not resolve that Windows write failure. See the
+[investigation and VM acceptance checklist](research/TASKBAR-WRITE-INVESTIGATION.md).
+
 ## Removing pinned applications
 
 Clearing current-user taskbar and Start pins is a separate concern from hiding taskbar UI elements. This module deliberately does **not** delete Explorer Taskband binary values, Start menu shell-state databases (start2.bin) or pinned shortcut folders. Such methods are build-sensitive and can corrupt an existing Windows profile.

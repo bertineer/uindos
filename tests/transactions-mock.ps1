@@ -20,6 +20,8 @@ function New-TestAction {
 
 $script:store = @{}
 $script:failName = $null
+$script:misreportName = $null
+$script:misreportOnce = $false
 $script:reads = 0
 $script:writes = 0
 $mock = @{
@@ -27,12 +29,19 @@ $mock = @{
         param($Path, $Name)
         $script:reads++
         $key = "$Path|$Name"
+        if ($Name -eq $script:misreportName -and $script:misreportOnce -and
+            $script:store.ContainsKey($key) -and $script:store[$key].value -eq 'wanted') {
+            $script:misreportOnce = $false
+            return [pscustomobject]@{ exists = $true; kind = 'String'; value = 'temporary false observation' }
+        }
         if ($script:store.ContainsKey($key)) { return $script:store[$key] }
         return [pscustomobject]@{ exists = $false; kind = $null; value = $null }
     }
     Write = {
         param($Path, $Name, $Kind, $Value)
-        if ($Name -eq $script:failName) { throw 'Simulated writer failure.' }
+        if ($Name -eq $script:failName) {
+            throw [UnauthorizedAccessException]::new("denied at $Path with private mock detail")
+        }
         $script:writes++
         $script:store["$Path|$Name"] = [pscustomobject]@{
             exists = $true; kind = $Kind; value = $Value
@@ -100,15 +109,61 @@ try {
     Assert-Test ($retry.status -eq 'undone' -and $script:store.Count -eq 1) 'retry resolves conflict'
 
     $script:failName = 'Second'
-    $failed = $false
+    $failedSummary = $null
     try {
         [void](Invoke-UindosApply -Actions @($one, $two) -Adapter $mock -JournalDirectory $root -ConfirmChanges)
     }
-    catch { $failed = $true }
-    Assert-Test $failed 'apply failure surfaced'
+    catch { $failedSummary = $_.Exception.Message }
+    Assert-Test ($failedSummary -match 'action=test\.second stage=write exceptionType=UnauthorizedAccessException errorCode=access_denied') 'access failure reports safe action, stage, type and code'
+    Assert-Test ($failedSummary -notmatch 'private mock detail|HKCU:|Mock') 'access failure summary omits exception message and registry path'
     Assert-Test ($script:store.Count -eq 1) 'first step automatically rolled back'
     Assert-Test ($script:store["$($one.path)|$($one.name)"].value -eq 17) 'rollback preserves original value'
     $script:failName = $null
+
+    # A one-time incorrect observation triggers verification failure; the actual
+    # desired value remains present so guarded rollback can safely restore prior state.
+    $script:misreportName = 'First'
+    $script:misreportOnce = $true
+    $verificationSummary = $null
+    try {
+        [void](Invoke-UindosApply -Actions @($one) -Adapter $mock -JournalDirectory $root -ConfirmChanges)
+    }
+    catch { $verificationSummary = $_.Exception.Message }
+    Assert-Test ($verificationSummary -match 'action=test\.first stage=verification exceptionType=InvalidOperationException errorCode=verification_failed') 'verification failure reports safe action, stage, type and code'
+    Assert-Test ($verificationSummary -notmatch 'temporary false observation|HKCU:|Mock') 'verification failure summary omits value and registry path'
+    Assert-Test ($script:store["$($one.path)|$($one.name)"].value -eq 17) 'verification failure safely rolls back prior value'
+    $script:misreportName = $null
+
+    # A journal failure during rollback must retain the original apply failure
+    # and move the transaction to needs-review without exposing the fake path.
+    $script:failName = 'Second'
+    $script:journalSaveCalls = 0
+    $script:originalJournalSave = ${function:Save-UindosJournal}
+    Set-Item Function:\Save-UindosJournal -Value {
+        param($Transaction, $Directory)
+        $script:journalSaveCalls++
+        if ($script:journalSaveCalls -eq 6) {
+            throw [IO.IOException]::new('private journal path Z:\private\mock-journal.json')
+        }
+        & $script:originalJournalSave -Transaction $Transaction -Directory $Directory
+    }
+    $rollbackSummary = $null
+    try {
+        try {
+            [void](Invoke-UindosApply -Actions @($one, $two) -Adapter $mock -JournalDirectory $root -ConfirmChanges)
+        }
+        catch { $rollbackSummary = $_.Exception.Message }
+    }
+    finally {
+        Set-Item Function:\Save-UindosJournal -Value $script:originalJournalSave
+        $script:failName = $null
+    }
+    Assert-Test ($rollbackSummary -match 'action=test\.second stage=write exceptionType=UnauthorizedAccessException errorCode=access_denied') 'rollback journal failure retains original apply diagnostics'
+    Assert-Test ($rollbackSummary -match 'rollbackErrorCode=rollback_failed rollbackExceptionType=IOException') 'rollback journal failure reports safe type and code'
+    Assert-Test ($rollbackSummary -match 'is needs-review' -and $rollbackSummary -notmatch 'private journal path|Z:\\private') 'failed rollback reports needs-review without leaking journal path'
+    $failedId = [regex]::Match($rollbackSummary, 'transaction ([0-9a-f-]{36})').Groups[1].Value
+    $failedJournal = Get-Content -LiteralPath (Join-Path $root "$failedId.json") -Raw | ConvertFrom-Json
+    Assert-Test ($failedJournal.status -eq 'needs-review') 'needs-review status persisted after rollback journal failure'
 
     $dupe = $false
     try { [void](Get-UindosPlan -Actions @($one,$one) -Adapter $mock) }
@@ -141,6 +196,9 @@ try {
 
     # A competing process changes the value after snapshot but before the write.
     # Inject a modified observation on the adapter's second read.
+    $script:store["$($one.path)|$($one.name)"] = [pscustomobject]@{
+        exists = $true; kind = 'DWord'; value = 17
+    }
     $script:raceReads = 0
     $race = @{
         Read = {
