@@ -54,4 +54,4 @@ Original project content is under the [MIT License](LICENSE). Third-party softwa
 
 ### Taskbar visibility
 
-Preview with `pwsh -NoProfile -File ./bin/uindos-taskbar.ps1`; apply with `-Apply`, undo with `-Undo <transaction-guid>`. See [taskbar configuration](docs/TASKBAR.md). This does not reset existing pinned applications.
+Preview taskbar Search and Task View with `pwsh -NoProfile -File ./bin/uindos-taskbar.ps1`; Widgets use the separate [supported device policy command](docs/WIDGETS.md). Apply with `-Apply`, undo with `-Undo <transaction-guid>`. These commands do not reset existing pinned applications.

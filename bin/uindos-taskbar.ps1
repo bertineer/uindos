@@ -3,8 +3,9 @@
 .SYNOPSIS
     Preview, apply, or undo current-user taskbar visibility preferences.
 .DESCRIPTION
-    Hides taskbar Widgets/weather, Search and Task View. Does NOT remove
-    installed apps or change pinned app layouts or Windows Search service.
+    Hides taskbar Search and Task View. Widgets are managed separately by
+    uindos-widgets because their supported control is a device policy.
+    Does NOT remove installed apps or change pinned app layouts or Windows Search service.
     Sign out/in if Explorer has not reflected the new preferences.
 #>
 [CmdletBinding(DefaultParameterSetName='Plan')]
@@ -35,6 +36,7 @@ try {
             $response = Get-UindosPlan -Actions $actions -Adapter $adapter
         }
     }
+    $response | Add-Member -NotePropertyName widgetsNote -NotePropertyValue 'Widgets are managed separately with bin/uindos-widgets.ps1.' -Force
     ConvertTo-Json -InputObject $response -Depth 15
     if ($response.status -eq 'needs-review') { exit 2 }
 }

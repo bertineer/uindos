@@ -1,22 +1,28 @@
-name: Taskbar visibility tests
+name: Taskbar and Widgets policy tests
 on:
   push:
     branches: [main]
     paths:
       - 'src/foundation/Taskbar.ps1'
+      - 'src/foundation/Widgets.ps1'
       - 'bin/uindos-taskbar.ps1'
+      - 'bin/uindos-widgets.ps1'
       - 'tests/taskbar-mock.ps1'
+      - 'tests/widgets-mock.ps1'
       - '.github/workflows/taskbar-tests.yml'
   pull_request:
     paths:
       - 'src/foundation/Taskbar.ps1'
+      - 'src/foundation/Widgets.ps1'
       - 'bin/uindos-taskbar.ps1'
+      - 'bin/uindos-widgets.ps1'
       - 'tests/taskbar-mock.ps1'
+      - 'tests/widgets-mock.ps1'
       - '.github/workflows/taskbar-tests.yml'
 permissions:
   contents: read
 jobs:
-  taskbar:
+  taskbar-widgets:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
@@ -26,3 +32,6 @@ jobs:
       - name: Cross-platform mocked taskbar preference tests
         shell: pwsh
         run: ./tests/taskbar-mock.ps1
+      - name: Cross-platform mocked Widgets policy tests
+        shell: pwsh
+        run: ./tests/widgets-mock.ps1

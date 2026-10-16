@@ -6,11 +6,14 @@ $ErrorActionPreference = 'Stop'
 function Assert-Test { param([bool]$Condition,[string]$Message) if (-not $Condition) { throw "FAIL: $Message" } }
 $os = [pscustomobject]@{editionId='Professional';build='26300';architecture='X64'}
 $actions = @(Get-UindosTaskbarActions -OsInfo $os)
-Assert-Test ($actions.Count -eq 3) 'three settings'
+Assert-Test ($actions.Count -eq 2) 'Search and Task View are the two current settings'
 Assert-Test (@($actions | Where-Object { $_.kind -ne 'DWord' -or $_.value -ne 0 -or $_.path -notlike 'HKCU:*' }).Count -eq 0) 'only per-user DWORD zero preferences'
-foreach ($required in @('TaskbarDa','ShowTaskViewButton','SearchboxTaskbarMode')) {
+foreach ($required in @('ShowTaskViewButton','SearchboxTaskbarMode')) {
     Assert-Test (@($actions | Where-Object name -eq $required).Count -eq 1) "required setting $required"
 }
+Assert-Test (@($actions | Where-Object name -eq 'TaskbarDa').Count -eq 0) 'new taskbar plans never target TaskbarDa'
+$legacyActions = @(Get-UindosTaskbarCatalog)
+Assert-Test ($legacyActions.Count -eq 3) 'full allowlist remains available for historical journals'
 foreach ($bad in @(
     [pscustomobject]@{editionId='Core';build='26300';architecture='X64'},
     [pscustomobject]@{editionId='Professional';build='19045';architecture='X64'}
@@ -48,21 +51,25 @@ $mock=@{
 $dir=Join-Path ([IO.Path]::GetTempPath()) ("uindos-taskbar-"+[guid]::NewGuid().ToString('N'))
 try {
     $plan=Get-UindosPlan -Actions $actions -Adapter $mock
-    Assert-Test ($plan.changeCount -eq 3 -and $script:writes -eq 0 -and -not (Test-Path $dir)) 'preview only'
+    Assert-Test ($plan.changeCount -eq 2 -and $script:writes -eq 0 -and -not (Test-Path $dir)) 'preview only'
     $blocked=$false
     try { [void](Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir) } catch { $blocked=$true }
     Assert-Test ($blocked -and $script:writes -eq 0) 'explicit apply required'
     $done=Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
-    Assert-Test ($done.status -eq 'applied' -and $script:state.Count -eq 3) 'all three applied'
+    Assert-Test ($done.status -eq 'applied' -and $script:state.Count -eq 2) 'both current taskbar settings applied'
     $again=Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
     Assert-Test ($again.status -eq 'unchanged') 'idempotent'
     $undone=Invoke-UindosUndo -TransactionId $done.transactionId -Adapter $mock -JournalDirectory $dir
     Assert-Test ($undone.status -eq 'undone' -and $script:state.Count -eq 0) 'undo restores originally absent settings'
-    $first="$($actions[0].path)|$($actions[0].name)"
+    $legacy=Invoke-UindosApply -Actions $legacyActions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
+    Assert-Test ($legacy.status -eq 'applied' -and $script:state.Count -eq 3) 'historical three-action journal remains valid'
+    $legacyUndo=Invoke-UindosUndo -TransactionId $legacy.transactionId -Adapter $mock -JournalDirectory $dir
+    Assert-Test ($legacyUndo.status -eq 'undone' -and $script:state.Count -eq 0) 'historical TaskbarDa journal remains undoable'
+    $first="$($legacyActions[0].path)|$($legacyActions[0].name)"
     $script:state[$first]=[pscustomobject]@{exists=$true;kind='DWord';value=1}
-    $second="$($actions[2].path)|$($actions[2].name)"
+    $second="$($actions[1].path)|$($actions[1].name)"
     $script:state[$second]=[pscustomobject]@{exists=$true;kind='DWord';value=2}
-    $changed=Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
+    $changed=Invoke-UindosApply -Actions $legacyActions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
     $restored=Invoke-UindosUndo -TransactionId $changed.transactionId -Adapter $mock -JournalDirectory $dir
     if ($restored.status -ne 'undone' -or $script:state[$first].value -ne 1 -or $script:state[$second].value -ne 2) {
         throw ('FAIL: prior values after undo; status={0}, conflicts={1}, first={2}, second={3}' -f $restored.status, $restored.conflicts, $script:state[$first].value, $script:state[$second].value)
@@ -71,6 +78,6 @@ try {
     $blocked=$false
     try { [void](Get-UindosPlan -Actions @($altered) -Adapter $mock) } catch { $blocked=$true }
     Assert-Test $blocked 'unapproved desired value blocked'
-    Write-Output 'PASS: taskbar widgets/weather, search, task view current-user registry preview/apply/undo'
+    Write-Output 'PASS: current taskbar defaults, historical Widgets journal compatibility, search and task view preview/apply/undo'
 }
 finally { if (Test-Path $dir) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue } }

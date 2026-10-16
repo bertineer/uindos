@@ -1,4 +1,4 @@
-# Three curated, current-user Windows 11 taskbar visibility preferences.
+# Two current-user taskbar defaults plus the historical Widgets undo target.
 # No Start/taskbar pin database edits; no disabling Windows Search or Widgets.
 function Get-UindosTaskbarCatalog {
     return @(
@@ -65,7 +65,10 @@ function Get-UindosTaskbarActions {
         [string]$OsInfo.architecture -cnotin @('X64','Arm64')) {
         throw [System.NotSupportedException]::new('Taskbar prefs require Windows 11 Pro/Pro N x64/ARM64.')
     }
-    return @(Get-UindosTaskbarCatalog)
+    # TaskbarDa stays in the full catalog so historical taskbar-v1 journals
+    # can still be validated and undone. New applies leave Widgets to its
+    # separate supported device-policy command.
+    return @(Get-UindosTaskbarCatalog | Where-Object { $_.id -cne 'taskbar.hide-widgets' })
 }
 
 function New-UindosTaskbarAdapter {
