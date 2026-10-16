@@ -94,15 +94,109 @@ function ConvertTo-UindosProvisionedAppxRows {
             if ($null -eq $package) {
                 throw [System.IO.InvalidDataException]::new('Provisioned AppX record was null.')
             }
-            $nameProperty = $package.PSObject.Properties['name']
-            if ($null -eq $nameProperty) { $nameProperty = $package.PSObject.Properties['DisplayName'] }
+            $nameProperty = $package.PSObject.Properties['DisplayName']
+            if ($null -eq $nameProperty) { $nameProperty = $package.PSObject.Properties['name'] }
             $versionProperty = $package.PSObject.Properties['version']
             if ($null -eq $nameProperty -or $null -eq $versionProperty) {
                 throw [System.IO.InvalidDataException]::new('Provisioned AppX record fields missing.')
             }
             $name = [string]$nameProperty.Value
             $version = [string]$versionProperty.Value
-            if ($name -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]*
+            if ($name -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or
+                $version -cnotmatch '^\d+\.\d+\.\d+\.\d+$') {
+                throw [System.IO.InvalidDataException]::new('Provisioned AppX record has invalid identity or version.')
+            }
+            [pscustomobject]@{ name = $name; version = $version }
+        }
+    )
+    @($rows | Sort-Object name, version -Unique)
+}
+
+function ConvertFrom-UindosProvisionedAppxJson {
+    param([Parameter(Mandatory)][string]$Json)
+
+    try {
+        $result = ConvertFrom-Json -InputObject $Json -ErrorAction Stop
+    }
+    catch {
+        throw [System.IO.InvalidDataException]::new('Windows PowerShell returned invalid provisioning JSON.')
+    }
+    if ($null -eq $result -or $result.schema -cne 'uindos.provisioned-appx/v1' -or
+        $null -eq $result.PSObject.Properties['packages'] -or
+        $null -eq $result.packages -or $result.packages -isnot [array]) {
+        throw [System.IO.InvalidDataException]::new('Windows PowerShell returned an invalid provisioning envelope.')
+    }
+    @(ConvertTo-UindosProvisionedAppxRows -Packages @($result.packages))
+}
+
+function Invoke-UindosProvisionedAppxWindowsPowerShell {
+    # Fixed Windows system executable; never use PATH resolution.
+    $exe = Join-Path ([Environment]::GetFolderPath([Environment+SpecialFolder]::System)) 'WindowsPowerShell\v1.0\powershell.exe'
+    if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+        throw [System.NotSupportedException]::new('Windows PowerShell 5.1 is unavailable for the DISM compatibility fallback.')
+    }
+    # EncodedCommand avoids interpolation/quoting and passes no sensitive input.
+    # The child emits ONLY compact schema-tagged JSON; no disk file is written.
+    $command = @'
+$ErrorActionPreference = 'Stop'
+$WarningPreference = 'SilentlyContinue'
+try {
+    $packages = @(
+        Get-AppxProvisionedPackage -Online -ErrorAction Stop | ForEach-Object {
+            [pscustomobject]@{ name = [string]$_.DisplayName; version = [string]$_.Version }
+        }
+    )
+    [pscustomobject]@{ schema = 'uindos.provisioned-appx/v1'; packages = $packages } |
+        ConvertTo-Json -Depth 4 -Compress
+}
+catch {
+    [Console]::Error.WriteLine('Provisioned AppX inventory failed in Windows PowerShell.')
+    exit 1
+}
+'@
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+    $output = @(& $exe -NoLogo -NoProfile -NonInteractive -EncodedCommand $encoded 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $output.Count -ne 1 -or
+        [string]::IsNullOrWhiteSpace([string]$output[0])) {
+        throw [System.InvalidOperationException]::new('Windows PowerShell 5.1 provisioning fallback failed.')
+    }
+    @(ConvertFrom-UindosProvisionedAppxJson -Json ([string]$output[0]))
+}
+
+function Get-UindosProvisionedAppx {
+    [CmdletBinding()]
+    param(
+        [scriptblock]$PrimaryReader,
+        [scriptblock]$FallbackReader,
+        [switch]$SkipPlatformChecks
+    )
+
+    # The override parameters permit isolated mock tests without Windows APIs.
+    if (-not $SkipPlatformChecks) {
+        Assert-UindosAdministrator
+        Assert-UindosCommand 'Get-AppxProvisionedPackage'
+    }
+    elseif ($null -eq $PrimaryReader -or $null -eq $FallbackReader) {
+        throw [System.ArgumentException]::new('Mock mode requires both readers.')
+    }
+
+    if ($null -eq $PrimaryReader) {
+        $PrimaryReader = { Get-AppxProvisionedPackage -Online -ErrorAction Stop }
+    }
+    if ($null -eq $FallbackReader) {
+        $FallbackReader = { Invoke-UindosProvisionedAppxWindowsPowerShell }
+    }
+    try {
+        $packages = @(& $PrimaryReader)
+    }
+    catch {
+        if (-not (Test-UindosProvisionedAppxRegistrationFailure -Exception $_.Exception)) {
+            throw
+        }
+        $packages = @(& $FallbackReader)
+    }
+    @(ConvertTo-UindosProvisionedAppxRows -Packages $packages)
+}
 
 function Get-UindosWin32Programs {
     $roots = @(
