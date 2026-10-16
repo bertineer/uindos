@@ -35,6 +35,8 @@ Update this file when a proposal has been researched and tested; do not silently
 
 **ADR-016: Separate scoped removal and deprovisioning (PR #8).** The fixed consumer/media allowlist expands to 21 names while preserving codecs, Media Foundation, Store/WinGet, gaming, security and WebView2. Existing-user AppX removal remains current-user-only with explicit data-loss consent; new-user servicing is a separate elevated command with separate deprovisioning consent, exact identity verification, journaling and no `-AllUsers`. Neither operation has an automatic app-data rollback. Test only in a disposable Windows VM until validated.
 
+**ADR-022: OneDrive starts with read-only preflight (candidate).** Detect only exact Microsoft OneDrive uninstall registrations and report process/account/Known Folder signals without publishing private paths or account identifiers. Files On-Demand hydration, sync health, backup completeness, and uninstall safety remain unknown/manual review. Any unlink or uninstall requires a separate design and informed user consent; never execute registry uninstall commands or delete sync folders/cloud content.
+
 
 ## Proposed for validation — privacy and desktop hardening (2026-10-16)
 

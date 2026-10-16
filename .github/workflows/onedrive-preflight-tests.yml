@@ -1,0 +1,28 @@
+name: OneDrive preflight tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/OneDrivePreflight.ps1'
+      - 'bin/uindos-onedrive-preflight.ps1'
+      - 'tests/onedrive-preflight-mock.ps1'
+      - '.github/workflows/onedrive-preflight-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/OneDrivePreflight.ps1'
+      - 'bin/uindos-onedrive-preflight.ps1'
+      - 'tests/onedrive-preflight-mock.ps1'
+      - '.github/workflows/onedrive-preflight-tests.yml'
+permissions:
+  contents: read
+jobs:
+  preflight:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-platform mocked OneDrive preflight tests
+        shell: pwsh
+        run: ./tests/onedrive-preflight-mock.ps1
