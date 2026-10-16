@@ -8,9 +8,9 @@ Exactly three DWORD values, current user only:
 
 | Purpose | Registry path (HKCU) | Value name | Desired DWORD | Source / interpretation |
 | --- | --- | --- | --- | --- |
-| Stop using Windows diagnostic data for tailored experiences | \`Software\Policies\Microsoft\Windows\CloudContent\` | \`DisableTailoredExperiencesWithDiagnosticData\` | 1 | [Microsoft Experience CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience#allowtailoredexperienceswithdiagnosticdata); documented user policy, Pro supported |
-| Disable third-party Spotlight suggestions | \`Software\Policies\Microsoft\Windows\CloudContent\` | \`DisableThirdPartySuggestions\` | 1 | [Microsoft Experience CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience#allowthirdpartysuggestionsinwindowsspotlight); documented user policy, Pro supported |
-| Disable the current user's Windows advertising ID preference | \`Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo\` | \`Enabled\` | 0 | Best-effort preference, commonly used by [Win11Debloat](https://github.com/Raphire/Win11Debloat/blob/25c3999be54e358bb7343a72223e4b1110e64e61/Regfiles/Disable_Telemetry.reg); **not equivalent to the [machine-wide advertising ID policy](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#disableadvertisingid)** |
+| Stop using Windows diagnostic data for tailored experiences | `Software\Policies\Microsoft\Windows\CloudContent` | `DisableTailoredExperiencesWithDiagnosticData` | 1 | [Microsoft Experience CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience#allowtailoredexperienceswithdiagnosticdata); documented user policy, Pro supported |
+| Disable third-party Spotlight suggestions | `Software\Policies\Microsoft\Windows\CloudContent` | `DisableThirdPartySuggestions` | 1 | [Microsoft Experience CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience#allowthirdpartysuggestionsinwindowsspotlight); documented user policy, Pro supported |
+| Disable the current user's Windows advertising ID preference | `Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo` | `Enabled` | 0 | Best-effort preference, commonly used by [Win11Debloat](https://github.com/Raphire/Win11Debloat/blob/25c3999be54e358bb7343a72223e4b1110e64e61/Regfiles/Disable_Telemetry.reg); **not equivalent to the [machine-wide advertising ID policy](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#disableadvertisingid)** |
 
 Windows 11 can still show recommendations after disabling tailored experiences, and the advertising ID setting does not remove advertisements or establish diagnostic-data-off.
 
@@ -33,7 +33,7 @@ pwsh -NoProfile -File ./bin/uindos-privacy.ps1 -Undo 00000000-0000-0000-0000-000
 
 The GUID shown above is an illustrative placeholder; replace it with the actual transaction ID. Never use a placeholder ID expecting it to work.
 
-\`-Apply\` is required to write. There is no consent-by-default or hidden schedule. Windows user Group Policy refreshes or user settings may change a value later. Re-running a preview will show the current state; automatic post-update reconciliation is a future milestone.
+`-Apply` is required to write. There is no consent-by-default or hidden schedule. Windows user Group Policy refreshes or user settings may change a value later. Re-running a preview will show the current state; automatic post-update reconciliation is a future milestone.
 
 ## Verification and rollback
 
@@ -41,9 +41,9 @@ The tool:
 - Confirms the Windows version/edition before planning or applying.
 - Enforces exact action ID, registry key, value name, registry kind and desired value; denies all other targets.
 - Captures each original value **and type** before writing.
-- Journals each transaction in \`%LOCALAPPDATA%\uindos\transactions\privacy-v1\<transactionId>.json\` prior to changing anything.
+- Journals each transaction in `%LOCALAPPDATA%\uindos\transactions\privacy-v1\<transactionId>.json` prior to changing anything.
 - Rechecks the snapshot before each write, verifies the resulting DWORD, and treats an unchanged system as a no-op.
-- Restores saved values on explicit Undo or attempts rollback after failed apply. It will not overwrite an externally modified value: instead it reports \`needs-review\`. An originally absent value is removed on undo, but an empty key created by uindos may remain.
+- Restores saved values on explicit Undo or attempts rollback after failed apply. It will not overwrite an externally modified value: instead it reports `needs-review`. An originally absent value is removed on undo, but an empty key created by uindos may remain.
 
 **Do not publish journals**; they may reveal policy values and the previous state. The journal is not an atomic Windows transaction or tamperproof. A forced termination can leave a partial installation requiring manual recovery. Undo returns a nonzero exit status when conflicts need review.
 
@@ -57,9 +57,9 @@ Only the current-user advertising-ID **preference** is changed, not a machine-le
 
 ## Tests
 
-\`pwsh -NoProfile -File ./tests/privacy-mock.ps1\` runs Windows-agnostic tests with an in-memory adapter; no registry changes.
+`pwsh -NoProfile -File ./tests/privacy-mock.ps1` runs Windows-agnostic tests with an in-memory adapter; no registry changes.
 
-\`pwsh -NoProfile -File ./tests/privacy-windows-readonly.ps1\` checks Windows registry reads and rejects unauthorized write targets; it **does not modify** the three production privacy settings. GitHub CI runs both.
+`pwsh -NoProfile -File ./tests/privacy-windows-readonly.ps1` checks Windows registry reads and rejects unauthorized write targets; it **does not modify** the three production privacy settings. GitHub CI runs both.
 
 A dedicated Windows 11 Pro VM must still validate effective behavior, apply/undo, Group Policy precedence, current-user scope, and Settings UI observability. Details: [research/PRIVACY-DEFAULTS.md](research/PRIVACY-DEFAULTS.md).
 
