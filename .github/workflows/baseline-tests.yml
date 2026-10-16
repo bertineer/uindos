@@ -27,6 +27,9 @@ jobs:
       - name: Run PowerShell mock tests
         shell: pwsh
         run: ./tests/baseline-smoke.ps1
+      - name: Test provisioned AppX compatibility logic (mock only)
+        shell: pwsh
+        run: ./tests/provisioned-appx-mock.ps1
       - name: Run live Windows read-only inventory (no data uploaded)
         if: runner.os == 'Windows'
         shell: pwsh
