@@ -1,0 +1,36 @@
+name: Privacy defaults tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/Privacy.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-privacy.ps1'
+      - 'tests/privacy-*.ps1'
+      - '.github/workflows/privacy-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/Privacy.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-privacy.ps1'
+      - 'tests/privacy-*.ps1'
+      - '.github/workflows/privacy-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  privacy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mock-only privacy policy tests
+        shell: pwsh
+        run: ./tests/privacy-mock.ps1
+      - name: Live Windows read-only privacy guard checks
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/privacy-windows-readonly.ps1
