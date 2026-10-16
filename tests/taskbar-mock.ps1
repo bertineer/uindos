@@ -64,7 +64,9 @@ try {
     $script:state[$second]=[pscustomobject]@{exists=$true;kind='DWord';value=2}
     $changed=Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
     $restored=Invoke-UindosUndo -TransactionId $changed.transactionId -Adapter $mock -JournalDirectory $dir
-    Assert-Test ($restored.status -eq 'undone' -and $script:state[$first].value -eq 1 -and $script:state[$second].value -eq 2) 'undo restores nonzero taskbar preferences'
+    if ($restored.status -ne 'undone' -or $script:state[$first].value -ne 1 -or $script:state[$second].value -ne 2) {
+        throw ('FAIL: prior values after undo; status={0}, conflicts={1}, first={2}, second={3}' -f $restored.status, $restored.conflicts, $script:state[$first].value, $script:state[$second].value)
+    }
     $altered=[pscustomobject]@{id=$actions[0].id;path=$actions[0].path;name=$actions[0].name;kind='DWord';value=1}
     $blocked=$false
     try { [void](Get-UindosPlan -Actions @($altered) -Adapter $mock) } catch { $blocked=$true }
