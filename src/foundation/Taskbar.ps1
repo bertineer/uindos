@@ -93,8 +93,8 @@ function New-UindosTaskbarAdapter {
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
             Assert-UindosTaskbarTarget -Path $Path -Name $Name
-            if ($Kind -cne 'DWord' -or $Value -isnot [int] -or $Value -ne 0) {
-                throw 'Taskbar adapter only writes fixed zero DWORD preferences.'
+            if ($Kind -cne 'DWord' -or $Value -isnot [int] -or $Value -lt 0) {
+                throw 'Taskbar adapter only writes DWORD values.'
             }
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
                 New-Item -Path $Path -Force -ErrorAction Stop | Out-Null

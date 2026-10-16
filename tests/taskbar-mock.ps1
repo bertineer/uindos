@@ -34,7 +34,7 @@ $mock=@{
     Write={
         param($path,$name,$kind,$value)
         Assert-UindosTaskbarTarget -Path $path -Name $name
-        if ($kind -cne 'DWord' -or $value -ne 0) {throw 'mock rejects unexpected writes'}
+        if ($kind -cne 'DWord' -or $value -isnot [int] -or $value -lt 0) {throw 'mock rejects unexpected writes'}
         $script:state["$path|$name"]=[pscustomobject]@{exists=$true;kind='DWord';value=[int]$value}
         $script:writes++
     }
@@ -58,6 +58,13 @@ try {
     Assert-Test ($again.status -eq 'unchanged') 'idempotent'
     $undone=Invoke-UindosUndo -TransactionId $done.transactionId -Adapter $mock -JournalDirectory $dir
     Assert-Test ($undone.status -eq 'undone' -and $script:state.Count -eq 0) 'undo restores originally absent settings'
+    $first="$($actions[0].path)|$($actions[0].name)"
+    $script:state[$first]=[pscustomobject]@{exists=$true;kind='DWord';value=1}
+    $second="$($actions[2].path)|$($actions[2].name)"
+    $script:state[$second]=[pscustomobject]@{exists=$true;kind='DWord';value=2}
+    $changed=Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
+    $restored=Invoke-UindosUndo -TransactionId $changed.transactionId -Adapter $mock -JournalDirectory $dir
+    Assert-Test ($restored.status -eq 'undone' -and $script:state[$first].value -eq 1 -and $script:state[$second].value -eq 2) 'undo restores nonzero taskbar preferences'
     $altered=[pscustomobject]@{id=$actions[0].id;path=$actions[0].path;name=$actions[0].name;kind='DWord';value=1}
     $blocked=$false
     try { [void](Get-UindosPlan -Actions @($altered) -Adapter $mock) } catch { $blocked=$true }
