@@ -93,7 +93,7 @@ function New-UindosTaskbarAdapter {
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
             Assert-UindosTaskbarTarget -Path $Path -Name $Name
-            if ($Kind -cne 'DWord' -or [string]$Value -cnotmatch '^[0-9]+
+            if ($Kind -cne 'DWord' -or [string]$Value -cnotmatch '^[0-9]+$' -or [long]$Value -gt [int]::MaxValue) {
                 throw 'Taskbar adapter only writes DWORD values.'
             }
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {

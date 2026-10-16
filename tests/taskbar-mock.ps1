@@ -34,7 +34,7 @@ $mock=@{
     Write={
         param($path,$name,$kind,$value)
         Assert-UindosTaskbarTarget -Path $path -Name $name
-        if ($kind -cne 'DWord' -or [string]$value -cnotmatch '^[0-9]+ {throw 'mock rejects unexpected writes'}
+        if ($kind -cne 'DWord' -or [string]$value -cnotmatch '^[0-9]+$' -or [long]$value -gt [int]::MaxValue) {throw 'mock rejects unexpected writes'}
         $script:state["$path|$name"]=[pscustomobject]@{exists=$true;kind='DWord';value=[int]$value}
         $script:writes++
     }
