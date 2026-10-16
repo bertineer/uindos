@@ -4,7 +4,7 @@
 
 uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](https://omarchy.org/) and [Hyprland](https://hyprland.org/). The goal is to strip away unwanted Microsoft consumer experiences and rebuild Windows as a lean, keyboard-driven desktop—without sacrificing the ability to receive Windows security updates.
 
-**Status: early implementation.** A Windows baseline collector and sandbox transaction engine are available. The first three per-user privacy defaults are proposed in PR #5, with dry-run as the default. No Edge removal, app debloating, or desktop installation has been implemented.
+**Status: early implementation.** A Windows baseline collector and sandbox transaction engine are available. The first three per-user privacy defaults are proposed in PR #5, with dry-run as the default. PR #6 proposes the first narrowly scoped current-user Copilot and consumer AppX removals; Edge removal and desktop installation remain future work.
 
 ## Philosophy
 
@@ -16,7 +16,7 @@ uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](http
 - **Verify results.** Distinguish settings applied from settings effective; measure before/after footprint and privacy outcomes.
 - **Minimal dependencies, transparent changes.** Auditable sources, explicit version pins/checksums, useful logs, and tested recovery.
 
-See [the first privacy defaults](docs/PRIVACY.md) and [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command. The [transaction-engine design](docs/TRANSACTIONS.md) describes the experimental dry-run, journaling, verification and rollback layer; it is not connected to real Windows settings yet.
+See [curated consumer app removal](docs/DEBLOAT.md), [the first privacy defaults](docs/PRIVACY.md) and [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command. The [transaction-engine design](docs/TRANSACTIONS.md) describes the experimental dry-run, journaling, verification and rollback layer; it is not connected to real Windows settings yet.
 
 Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECTURE.md), [decision log](docs/DECISIONS.md), and [roadmap](docs/ROADMAP.md).
 
