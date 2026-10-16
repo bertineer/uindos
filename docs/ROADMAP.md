@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | M0 — Foundation | Philosophy, AGENTS, architecture, decision log, roadmap | Scope and safety guardrails agreed |
 | M1 — Source audit | Source-linked inventory of WinSux, Win11Debloat, WinUtil and the desktop candidates | Operations triaged by risk, edition and supported status |
-| M2 — Read-only baseline | Windows 11 capability probe, installed/provisioned package inventory and baseline report | Works without elevation for read-only sections; no side effects |
+| M2 — Read-only baseline | Windows 11 capability probe, installed/provisioned package inventory and baseline report | Proposed in PR #3; mock-only CI and Windows VM validation required |
 | M3 — Transactional core | Plan/dry-run, exact state capture, log, apply/verify, guarded undo, idempotence | Automated unit tests and Windows VM smoke tests |
 | M4 — Privacy / debloat | Curated policy and app removals, Copilot mitigation, Edge/browser removal with WebView2 preserved | Windows Update, Defender and core apps continue working |
 | M5 — Desktop | One tiler, Alacritty, private browser, shell, launcher, theme and shortcuts | Normal-user process model and reliable Explorer fallback |

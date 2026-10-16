@@ -4,7 +4,7 @@
 
 uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](https://omarchy.org/) and [Hyprland](https://hyprland.org/). The goal is to strip away unwanted Microsoft consumer experiences and rebuild Windows as a lean, keyboard-driven desktop—without sacrificing the ability to receive Windows security updates.
 
-**Status: planning and research.** No functional installer or debloating code is available yet. Do not run code from this repository expecting a working setup.
+**Status: early implementation.** A read-only Windows baseline collector is available for testing. No installer or debloating operations have been implemented; running this repository will not transform Windows.
 
 ## Philosophy
 
@@ -15,6 +15,8 @@ uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](http
 - **Keep Windows updatable and secure.** Do not disable Windows Update, Defender, UAC, BitLocker, Secure Boot, or other security protections as a routine privacy tweak.
 - **Verify results.** Distinguish settings applied from settings effective; measure before/after footprint and privacy outcomes.
 - **Minimal dependencies, transparent changes.** Auditable sources, explicit version pins/checksums, useful logs, and tested recovery.
+
+See [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command.
 
 Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECTURE.md), [decision log](docs/DECISIONS.md), and [roadmap](docs/ROADMAP.md).
 
