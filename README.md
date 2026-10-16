@@ -57,3 +57,11 @@ Original project content is under the [MIT License](LICENSE). Third-party softwa
 ### Taskbar visibility
 
 Preview taskbar Search and Task View with `pwsh -NoProfile -File ./bin/uindos-taskbar.ps1`; Widgets use the separate [supported device policy command](docs/WIDGETS.md). Apply with `-Apply`, undo with `-Undo <transaction-guid>`. These commands do not reset existing pinned applications.
+
+### Appearance defaults
+
+Preview the curated dark Windows/app color modes and solid-black desktop with
+`pwsh -NoProfile -File ./bin/uindos-appearance.ps1`. Apply with `-Apply` from the
+normal Explorer user; restore captured managed state with `-Undo <transaction-guid>`.
+The [appearance guide](docs/APPEARANCE.md) describes private journals, native
+desktop behavior and validation limits.
