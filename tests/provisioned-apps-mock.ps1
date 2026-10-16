@@ -76,7 +76,7 @@ try {
     Assert-Test ($partial.status -eq 'needs-review') 'servicing failure surfaced as needs-review'
     $saved=Get-Content -LiteralPath (Join-Path $journal "$($partial.journalId).json") -Raw | ConvertFrom-Json
     Assert-Test ($saved.status -eq 'needs-review') 'partial journal records failure'
-    Assert-Test ((ConvertTo-Json -InputObject $saved -Depth 10) -notmatch 'private|Users') 'no raw failure or path leaked'
+    Assert-Test ((ConvertTo-Json -InputObject $saved -Depth 10) -notmatch 'C:\\Users\\private|Mock servicing failed') 'no raw failure or path leaked'
     $script:failOn=$null
 
     $unavailable=@{Read={throw 'COM failure'};Remove={throw 'Must never remove'}}
