@@ -20,7 +20,7 @@ foreach ($bad in @(
 }
 
 $names = @(Get-UindosConsumerAppNames)
-Assert-Test ($names.Count -eq 21) 'Twenty-one curated apps'
+Assert-Test ($names.Count -eq 24) 'Twenty-four curated apps'
 Assert-Test ($names -ccontains 'Microsoft.Copilot') 'Copilot included'
 foreach ($protected in @('Microsoft.WindowsStore','Microsoft.DesktopAppInstaller','Microsoft.GamingApp','Microsoft.Edge','Microsoft.WebView2','Microsoft.XboxGamingOverlay','Microsoft.AV1VideoExtension','Microsoft.HEVCVideoExtension','Microsoft.VP9VideoExtensions','Microsoft.WindowsCalculator','Microsoft.WindowsNotepad','Microsoft.SecHealthUI')) {
     Assert-Test ($names -cnotcontains $protected) "Protected $protected excluded"
@@ -60,7 +60,7 @@ $journal=Join-Path ([IO.Path]::GetTempPath()) ('uindos-appx-mock-'+[Guid]::NewGu
 try {
     $p=Get-UindosConsumerAppPlan -Provider $provider -OsInfo $os
     Assert-Test ($p.mode -eq 'read-only' -and $p.removalCount -eq 3) 'Preview two present packages'
-    Assert-Test ($p.entries.Count -eq 21 -and $p.blockedCount -eq 0) 'Full curated inventory'
+    Assert-Test ($p.entries.Count -eq 24 -and $p.blockedCount -eq 0) 'Full curated inventory'
     Assert-Test (-not (Test-Path $journal) -and $script:removed -eq 0) 'Preview no file writes or removal'
 
     $blocked=$false

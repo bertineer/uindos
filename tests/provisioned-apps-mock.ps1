@@ -42,7 +42,7 @@ $script:rows['Microsoft.ZuneMusic']=New-Row 'Microsoft.ZuneMusic'
 $journal = Join-Path ([IO.Path]::GetTempPath()) ('uindos-deprovision-'+[Guid]::NewGuid().ToString('N'))
 try {
     $plan=Get-UindosProvisionedAppPlan -Provider $provider -OsInfo $os
-    Assert-Test ($plan.entries.Count -eq 21 -and $plan.removalCount -eq 2 -and $plan.blockedCount -eq 0) 'read-only plan recognizes only curated apps'
+    Assert-Test ($plan.entries.Count -eq 24 -and $plan.removalCount -eq 2 -and $plan.blockedCount -eq 0) 'read-only plan recognizes only curated apps'
     Assert-Test ($plan.scope -eq 'new-users-only' -and $plan.mode -eq 'read-only') 'explicit new-user scope'
     Assert-Test (-not (Test-Path $journal) -and $script:removed -eq 0) 'preview did not mutate anything'
 

@@ -1,6 +1,6 @@
 # Curated consumer and media AppX removal — Windows 11 Pro
 
-**PR #8 (VM testing pending).** An opinionated list of **21 exact AppX package names**, not a general debloat catalog.
+**PR #8 (VM testing pending).** An opinionated list of **24 exact AppX package names**, not a general debloat catalog.
 
 ## Curated list
 
@@ -8,9 +8,9 @@
 | --- | --- |
 | Original consumer targets | Microsoft.Copilot, Microsoft.BingNews, Microsoft.BingWeather, Microsoft.WindowsFeedbackHub, Microsoft.MicrosoftSolitaireCollection |
 | Media applications | Clipchamp.Clipchamp, Microsoft.ZuneMusic (Media Player / Groove), Microsoft.ZuneVideo (Movies & TV), Microsoft.WindowsSoundRecorder, Microsoft.WindowsCamera, Microsoft.Windows.Photos, Microsoft.Paint |
-| Other consumer/cloud apps | Microsoft.MicrosoftOfficeHub, Microsoft.OutlookForWindows, MSTeams, Microsoft.MicrosoftStickyNotes, Microsoft.Todos, Microsoft.PowerAutomateDesktop, Microsoft.Windows.DevHome, Microsoft.YourPhone, Microsoft.WindowsAlarms |
+| Other consumer/cloud apps | Microsoft.MicrosoftOfficeHub, Microsoft.OutlookForWindows, MSTeams, Microsoft.MicrosoftStickyNotes, Microsoft.Todos, Microsoft.PowerAutomateDesktop, Microsoft.Windows.DevHome, Microsoft.YourPhone, Microsoft.WindowsAlarms, MicrosoftCorporationII.QuickAssist, Microsoft.GetHelp, Microsoft.Getstarted |
 
-The 2026-10-16 Windows 11 Pro 26H2 build 26300.9711 test baseline contains **19 of these 21** in provisioning; Copilot and ZuneVideo are absent. Clipchamp has publisher identity `yxz26nhyzhsrt`; all other listed packages use publisher `8wekyb3d8bbwe`. Identity/version/publisher drift blocks removal. Absence is a normal, reported state.
+The 2026-10-16 Windows 11 Pro 26H2 build 26300.9711 test baseline contains **19 of the original 21** in provisioning; Copilot and ZuneVideo are absent. Clipchamp has publisher identity `yxz26nhyzhsrt`; all other listed packages use publisher `8wekyb3d8bbwe`. Identity/version/publisher drift blocks removal. Absence is a normal, reported state.
 
 **Never removed by these commands:** Microsoft Store, WinGet/App Installer, Windows Security, Windows Update, Edge/WebView2, gaming/Xbox, Calculator, Notepad, Snipping Tool, app runtimes/frameworks, AV1/HEVC/VP9/HEIF/WebP codecs or system media APIs. The legacy Windows Media Player optional feature is not an AppX target and is **not** modified in this PR. We are removing the media apps, not trying to strip Windows Pro into a potentially broken Pro N installation.
 
@@ -61,7 +61,7 @@ Both operations use an exclusive journal lock, read-before-write checks, exact p
 ## Verification gate
 
 1. Restore the disposable Windows 11 Pro snapshot **03 - uindos Testing Environment**.
-2. Capture a read-only pre-change baseline and inspect both 21-item preview plans; expect approximately 19 provisioned entries on build 26300.9711.
+2. Capture a read-only pre-change baseline and inspect both 24-item preview plans; expect approximately 19 provisioned entries on build 26300.9711.
 3. Compare provisioned package full identities against Windows PowerShell 5.1 Get-AppxProvisionedPackage -Online before any apply.
 4. Run current-user apply; preview again; inspect its journal.
 5. Run elevated deprovision apply; preview again; inspect its journal and independently enumerate provisioned packages.
@@ -77,3 +77,7 @@ The CI tests include mock-only current-user and provisioning tests on Windows an
 - [Microsoft: Remove-AppxProvisionedPackage](https://learn.microsoft.com/en-us/powershell/module/dism/remove-appxprovisionedpackage)
 - [Microsoft: deprovisioning and upgrades](https://learn.microsoft.com/en-us/windows/application-management/remove-provisioned-apps-during-update)
 - [Research sources](research/SOURCES.md)
+
+## Supplemental app names (PR #9)
+
+The fixed allowlist additionally includes MicrosoftCorporationII.QuickAssist, Microsoft.GetHelp and Microsoft.Getstarted. Their exact installed/provisioned identities are checked before removal; an absent package is not an error. `Microsoft.StartExperiencesApp` is **not** equated to `Microsoft.Getstarted` and is not removed: it needs independent shell compatibility research before consideration. Microsoft OneDrive is a Win32 uninstall entry, not an AppX package on the test VM, and must use a separate, consented installer removal workflow; no broad package-list matching, user-file deletion, or OneDrive unlinking is performed here.
