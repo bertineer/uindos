@@ -1,6 +1,6 @@
 # Taskbar visibility and pinned-app policies
 
-PR #9 implements a narrow, reversible current-user preference module for Widgets/weather, Search and Task View. It does not delete packages, disable Windows Search, remove Widgets or modify app pins.
+The taskbar command manages only current-user Search and Task View visibility preferences. Widgets use a separate device policy command; this split keeps the TaskbarDa write failure from blocking unrelated per-user settings. Neither command deletes packages, disables Windows Search, nor modifies app pins.
 
 ## Usage (PowerShell 7, normal user)
 
@@ -10,7 +10,7 @@ pwsh -NoProfile -File ./bin/uindos-taskbar.ps1 -Apply
 pwsh -NoProfile -File ./bin/uindos-taskbar.ps1 -Undo <transaction-guid>
 ```
 
-The command defaults to a read-only plan. Apply journals exact prior values under %LOCALAPPDATA%\uindos\transactions\taskbar-v1; undo restores the prior absent or DWORD state unless another actor changed it. Sign out/in if Explorer has not refreshed the taskbar. Group policy may override these personal preferences. Weather on the taskbar is a Windows Widgets surface independent of the Microsoft.BingWeather application.
+The command defaults to a read-only plan. Apply journals exact prior values under %LOCALAPPDATA%\uindos\transactions\taskbar-v1; undo restores the prior absent or DWORD state unless another actor changed it. Sign out/in if Explorer has not refreshed the taskbar. Group policy may override these personal preferences. Older taskbar-v1 journals that include `TaskbarDa` remain valid for Undo; new taskbar plans do not target it. Use [Widgets policy](WIDGETS.md) separately.
 
 On the Windows 11 Pro build 26300.9711 test VM, a previous Widgets write
 failed with `UnauthorizedAccessException` and rolled back the transaction;
