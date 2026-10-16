@@ -52,7 +52,7 @@ function Test-UindosStateEqual {
 
 function Get-UindosPlan {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][array]$Actions,
+    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$Actions,
           [Parameter(Mandatory)][hashtable]$Adapter)
     Assert-UindosAdapter -Adapter $Adapter
     $ids = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -164,7 +164,7 @@ function Restore-UindosSteps {
 
 function Invoke-UindosApply {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][array]$Actions,
+    param([Parameter(Mandatory)][AllowEmptyCollection()][array]$Actions,
           [Parameter(Mandatory)][hashtable]$Adapter,
           [Parameter(Mandatory)][string]$JournalDirectory,
           [switch]$ConfirmChanges)
