@@ -129,10 +129,12 @@ function Get-UindosOneDriveAccountObservation {
 }
 
 function Get-UindosOneDriveKnownFolderPaths {
+    # Metadata only: do not verify or create redirected/network directories.
+    $option = [Environment+SpecialFolderOption]::DoNotVerify
     [pscustomobject]@{
-        desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
-        documents = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)
-        pictures = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures)
+        desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory,$option)
+        documents = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments,$option)
+        pictures = [Environment]::GetFolderPath([Environment+SpecialFolder]::MyPictures,$option)
     }
 }
 
