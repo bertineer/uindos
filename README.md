@@ -18,6 +18,8 @@ uindos is an opinionated, privacy-first Windows setup inspired by [Omarchy](http
 
 See [curated consumer app removal](docs/DEBLOAT.md), [the first privacy defaults](docs/PRIVACY.md) and [the read-only baseline guide](docs/BASELINE.md) for the first diagnostic command. The [transaction-engine design](docs/TRANSACTIONS.md) describes the experimental dry-run, journaling, verification and rollback layer; it is not connected to real Windows settings yet.
 
+The [read-only OneDrive preflight](docs/ONEDRIVE-PREFLIGHT.md) reports registered Win32 install and limited current-user signals. It does not unlink or uninstall OneDrive and cannot establish sync completion, cloud backup completeness, or file hydration.
+
 Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECTURE.md), [decision log](docs/DECISIONS.md), and [roadmap](docs/ROADMAP.md).
 
 ## Intended workflow (not yet implemented)
