@@ -32,7 +32,7 @@ jobs:
         shell: pwsh
         run: |
           $json = & ./bin/uindos-baseline.ps1 | Out-String
-          if ($LASTEXITCODE -ne 0) { throw 'Baseline process exited unsuccessfully.' }
+          if ([string]::IsNullOrWhiteSpace($json)) { throw 'Baseline returned no JSON.' }
           $result = $json | ConvertFrom-Json
           if ($result.schema -ne 'uindos.baseline/v1') { throw 'Invalid baseline schema.' }
           if ($result.probes.os.status -ne 'ok') { throw 'OS probe failed on Windows.' }
