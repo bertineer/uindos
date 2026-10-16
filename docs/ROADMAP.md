@@ -31,3 +31,5 @@
 - Search/launcher integration, exact keyboard shortcuts and a low-overhead top bar.
 
 Community requests are evaluated for alignment with the existing vision, not for feature-count growth.
+
+PR #9: exact Quick Assist / Get Help / Get Started app names plus per-user taskbar visibility preferences. OneDrive (Win32), Start pins and taskbar pins require distinct, carefully scoped handling.

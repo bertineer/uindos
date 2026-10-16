@@ -7,7 +7,7 @@ $provider=New-UindosAppxProvider
 # fixture ONLY in this read-only test; never call -Apply in this script.
 $os=[pscustomobject]@{editionId='Professional';build='26100';architecture='X64'}
 $p=Get-UindosConsumerAppPlan -Provider $provider -OsInfo $os
-if ($p.schema -ne 'uindos.app-removal-plan/v1' -or $p.entries.Count -ne 21) {
+if ($p.schema -ne 'uindos.app-removal-plan/v1' -or $p.entries.Count -ne 24) {
     throw 'AppX plan schema or fixed list invalid.'
 }
 foreach ($item in $p.entries) {

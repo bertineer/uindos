@@ -26,6 +26,9 @@ function Get-UindosConsumerAppNames {
         'Microsoft.Windows.DevHome'
         'Microsoft.YourPhone'
         'Microsoft.WindowsAlarms'
+        'MicrosoftCorporationII.QuickAssist'
+        'Microsoft.GetHelp'
+        'Microsoft.Getstarted'
     )
 }
 

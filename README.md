@@ -51,3 +51,7 @@ Development happens through small, reviewable pull requests. See [CONTRIBUTING.m
 ## License
 
 Original project content is under the [MIT License](LICENSE). Third-party software and copied material retain their own licenses. Links to external projects do not imply endorsement or inclusion.
+
+### Taskbar visibility
+
+Preview with `pwsh -NoProfile -File ./bin/uindos-taskbar.ps1`; apply with `-Apply`, undo with `-Undo <transaction-guid>`. See [taskbar configuration](docs/TASKBAR.md). This does not reset existing pinned applications.
