@@ -27,3 +27,5 @@
 - **ADR-TBD-013:** safe unsupported Edge removal and rollback.
 
 Update this file when a proposal has been researched and tested; do not silently promote a proposal to an accepted requirement.
+
+**ADR-014: Privacy v1 is deliberately per-user and narrowly allowlisted (PR #5).** On Windows 11 Pro/Pro N, initially apply user-tailored-experiences and third-party suggestions Group Policy values, plus the per-user advertising-ID preference as best-effort. Do not claim machine-wide policy enforcement, diagnostic-data-off, or that personalized ads are completely removed. Keep these changes undoable and independent of Windows Update, Defender and Edge removal.

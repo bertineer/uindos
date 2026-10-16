@@ -1,6 +1,7 @@
 # Transaction engine for curated uindos state changes.
-# M3 supports only registry-value actions under the EngineTest sandbox.
-# No production tweaks, arbitrary commands, package removal, or service edits.
+# M3 initially supported only the EngineTest sandbox; adapters may now supply
+# strict ValidateAction rules for individually reviewed privacy values.
+# No arbitrary commands, package removal, service edits or unsigned scripts.
 . (Join-Path $PSScriptRoot 'RegistryAdapter.ps1')
 
 function Assert-UindosAdapter {
