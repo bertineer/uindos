@@ -39,3 +39,5 @@ PR #9: exact Quick Assist / Get Help / Get Started app names plus per-user taskb
 The post-PR8 VM baseline and snapshot should precede additional destructive changes. See [Windows 11 Pro 26H2 privacy/desktop plan](research/WIN11-PRO-26H2-HARDENING.md) for the phased scope, edition restrictions, app identities, test gates, and proposed PR #11–16. Do not deploy wholesale telemetry HOSTS blocking or unsupported Edge browser uninstallation as uindos defaults.
 
 **PR #12 — Notifications and post-update welcome.** Add a journaled, reversible per-user preference module for post-update welcome, tips and finish-setup suggestions. Pro CSP limitations and behavior verification documented; does not block initial OOBE or notifications security infrastructure.
+
+**Next candidate — OneDrive Win32 preflight.** Read-only detection only; see [the preflight guide](ONEDRIVE-PREFLIGHT.md) and [source research](research/ONEDRIVE-PREFLIGHT.md). Unlink/uninstall remains separate and requires informed review of sync, Known Folder Move, backup, and hydration state.
