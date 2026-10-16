@@ -10,6 +10,7 @@ Private baseline, journals and screen captures are retained outside Git.
 | Check | Evidence and practical limit |
 | --- | --- |
 | Baseline 05 | All 13 probes ok; 93 current-user AppX, 92 all-user, 27 provisioned, 7 Win32 entries. Captured before the final Widgets/taskbar Apply. Aggregate counts are observations, not proof of causation. |
+| Post-merge baseline 06 | Fresh collection after the acceptance checks passed 13/13 probes, with 93 current-user and 27 provisioned AppX. Defender antivirus/realtime/tamper, all firewall profiles and Secure Boot remained enabled. |
 | Widgets/taskbar transaction cycle | Apply, repeat Apply unchanged, exact-value Undo, then reapply passed on the VM. Original Task View absence and Search DWORD 2 were restored during Undo. Widgets policy absence was restored; its new empty key can remain. |
 | Current managed registry state | Widgets, taskbar and welcome previews show zero pending changes. Two privacy-v1 defaults remain pending; preview success is not an assertion that every default has been applied. |
 | Taskbar UI | Widgets/weather, Search and Task View controls were present before final Apply and absent afterwards. No Explorer restart or sign-out was needed. |
