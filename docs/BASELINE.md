@@ -47,7 +47,7 @@ Run dependency-free, mock-only smoke tests with PowerShell 7 on Linux or Windows
 pwsh -NoProfile -File ./tests/baseline-smoke.ps1
 ~~~
 
-The GitHub workflow runs these tests on Windows and Ubuntu. They verify the JSON contract and report-status handling with injected providers; **they do not exercise real Windows probes**.
+The GitHub workflow runs mock tests on Windows and Ubuntu. The Windows job also executes a **read-only live collector** against the hosted runner and checks its OS/service probes and JSON structure without publishing inventory data. Hosted-runner validation is not a substitute for testing the supported Windows 11 Pro configuration in a dedicated VM.
 
 ### Manual Windows VM gate
 

@@ -27,3 +27,15 @@ jobs:
       - name: Run PowerShell mock tests
         shell: pwsh
         run: ./tests/baseline-smoke.ps1
+      - name: Run live Windows read-only inventory (no data uploaded)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $json = & ./bin/uindos-baseline.ps1 | Out-String
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline process exited unsuccessfully.' }
+          $result = $json | ConvertFrom-Json
+          if ($result.schema -ne 'uindos.baseline/v1') { throw 'Invalid baseline schema.' }
+          if ($result.probes.os.status -ne 'ok') { throw 'OS probe failed on Windows.' }
+          if ($result.probes.selectedServices.status -ne 'ok') { throw 'Service probe failed on Windows.' }
+          if (@($result.probes.os.data).Count -ne 1) { throw 'OS details missing.' }
+          Write-Output 'PASS: Windows inventory invoked and JSON structure verified; inventory not printed.'
