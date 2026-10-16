@@ -135,6 +135,33 @@ try {
         Assert-Test ($doc.schema -eq 'uindos.transaction/v1') 'journal schema valid'
     }
 
+    # Empty curated manifest is an entirely read-only, supported plan.
+    $empty = Get-UindosPlan -Actions @() -Adapter $mock
+    Assert-Test ($empty.changeCount -eq 0 -and $empty.actions.Count -eq 0) 'empty curated action list'
+
+    # A competing process changes the value after snapshot but before the write.
+    # Inject a modified observation on the adapter's second read.
+    $script:raceReads = 0
+    $race = @{
+        Read = {
+            param($Path, $Name)
+            $script:raceReads++
+            if ($script:raceReads -eq 2) {
+                return [pscustomobject]@{ exists = $true; kind = 'String'; value = 'outside update' }
+            }
+            return $script:store["$Path|$Name"]
+        }
+        Write = { param($Path, $Name, $Kind, $Value) throw 'Writer must not run on drift.' }
+        Remove = { param($Path, $Name) throw 'Remover must not run on drift.' }
+    }
+    $raceDetected = $false
+    try {
+        [void](Invoke-UindosApply -Actions @($one) -Adapter $race -JournalDirectory $root -ConfirmChanges)
+    }
+    catch { $raceDetected = $true }
+    Assert-Test ($raceDetected -and $script:raceReads -ge 2) 'concurrent drift rejects write'
+    Assert-Test ($script:store["$($one.path)|$($one.name)"].value -eq 17) 'drift rejection keeps prior state'
+
     Write-Output 'PASS: mock transaction dry run, confirmation, idempotence, rollback, conflict and sandbox checks'
 }
 finally {

@@ -7,7 +7,7 @@
 Establish a small, testable execution contract *before* developing invasive system modifications:
 
 1. \`Get-UindosPlan\` inspects requested actions and their exact pre-change state. It never creates directories or writes to the registry.
-2. \`Invoke-UindosApply -ConfirmChanges\` re-reads the state, persists a prepared JSON journal **before** changing anything, writes one sandbox registry value at a time, verifies the result and records each step.
+2. \`Invoke-UindosApply -ConfirmChanges\` re-reads the state, persists a prepared JSON journal **before** changing anything, rechecks that the value still matches the snapshot just before each write, writes one sandbox registry value at a time, verifies the result and records each step.
 3. \`Invoke-UindosUndo\` uses exact saved prior values/types and reverses steps in reverse order. If something else has changed a value in the meantime, it **refuses to overwrite the drift** and marks the journal \`needs-review\`.
 4. A failing apply attempts a best-effort reverse rollback; status distinguishes \`rolled-back\` from \`needs-review\`.
 5. A repeated apply to the already desired state is a no-op, without another transaction journal.
