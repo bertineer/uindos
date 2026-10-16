@@ -1,7 +1,7 @@
 # Requires -Version 7.0
 <#
 .SYNOPSIS
-    Inspect or remove the curated current-user Copilot and consumer AppX list.
+    Inspect or remove the curated current-user consumer and media AppX applications.
 .DESCRIPTION
     Default is a read-only preview. AppX removal can erase app-specific data
     and cannot be automatically undone; requires -Apply -AcceptAppDataLoss.

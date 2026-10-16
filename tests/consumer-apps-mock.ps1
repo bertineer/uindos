@@ -20,9 +20,9 @@ foreach ($bad in @(
 }
 
 $names = @(Get-UindosConsumerAppNames)
-Assert-Test ($names.Count -eq 5) 'Five curated packages'
+Assert-Test ($names.Count -eq 21) 'Twenty-one curated apps'
 Assert-Test ($names -ccontains 'Microsoft.Copilot') 'Copilot included'
-foreach ($protected in @('Microsoft.WindowsStore','Microsoft.DesktopAppInstaller','Microsoft.GamingApp','Microsoft.Edge','Microsoft.WebView2','Microsoft.XboxGamingOverlay')) {
+foreach ($protected in @('Microsoft.WindowsStore','Microsoft.DesktopAppInstaller','Microsoft.GamingApp','Microsoft.Edge','Microsoft.WebView2','Microsoft.XboxGamingOverlay','Microsoft.AV1VideoExtension','Microsoft.HEVCVideoExtension','Microsoft.VP9VideoExtensions','Microsoft.WindowsCalculator','Microsoft.WindowsNotepad','Microsoft.SecHealthUI')) {
     Assert-Test ($names -cnotcontains $protected) "Protected $protected excluded"
 }
 $publisher = '8wekyb3d8bbwe'
@@ -30,7 +30,7 @@ function New-Fixture {
     param([string]$Name, [string]$Publisher = '8wekyb3d8bbwe', [bool]$Framework = $false)
     [pscustomobject]@{
         Name=$Name;Version='1.0.0.0';PublisherId=$Publisher
-        PackageFullName=($Name + '_1.0.0.0_x64__8wekyb3d8bbwe')
+        PackageFullName=($Name + '_1.0.0.0_x64__' + $Publisher)
         IsFramework=$Framework;IsResourcePackage=$false;NonRemovable=$false
     }
 }
@@ -52,14 +52,15 @@ $provider=@{
         $script:removed++
     }
 }
+$script:packages['Clipchamp.Clipchamp']=New-Fixture -Name 'Clipchamp.Clipchamp' -Publisher 'yxz26nhyzhsrt'
 $script:packages['Microsoft.Copilot']=New-Fixture 'Microsoft.Copilot'
 $script:packages['Microsoft.BingWeather']=New-Fixture 'Microsoft.BingWeather'
 $journal=Join-Path ([IO.Path]::GetTempPath()) ('uindos-appx-mock-'+[Guid]::NewGuid().ToString('N'))
 
 try {
     $p=Get-UindosConsumerAppPlan -Provider $provider -OsInfo $os
-    Assert-Test ($p.mode -eq 'read-only' -and $p.removalCount -eq 2) 'Preview two present packages'
-    Assert-Test ($p.entries.Count -eq 5 -and $p.blockedCount -eq 0) 'Full curated inventory'
+    Assert-Test ($p.mode -eq 'read-only' -and $p.removalCount -eq 3) 'Preview two present packages'
+    Assert-Test ($p.entries.Count -eq 21 -and $p.blockedCount -eq 0) 'Full curated inventory'
     Assert-Test (-not (Test-Path $journal) -and $script:removed -eq 0) 'Preview no file writes or removal'
 
     $blocked=$false
@@ -72,14 +73,14 @@ try {
     Assert-Test $blocked 'No removal without explicit apply'
 
     $result=Invoke-UindosConsumerAppRemoval -Provider $provider -JournalDirectory $journal -Apply -AcceptAppDataLoss -OsInfo $os
-    Assert-Test ($result.status -eq 'completed' -and $result.removed -eq 2) 'Selected current-user apps removed'
-    Assert-Test ($script:removed -eq 2 -and $script:packages.Count -eq 0) 'Exact package inventory removed'
+    Assert-Test ($result.status -eq 'completed' -and $result.removed -eq 3) 'Selected current-user apps removed'
+    Assert-Test ($script:removed -eq 3 -and $script:packages.Count -eq 0) 'Exact package inventory removed'
     $saved=Get-Content -LiteralPath (Join-Path $journal "$($result.journalId).json") -Raw | ConvertFrom-Json
     Assert-Test ($saved.status -eq 'completed' -and $saved.noAutomaticRollback) 'Journal explicitly records irreversibility'
-    Assert-Test ($saved.items.Count -eq 2) 'Only selected installed app identities journaled'
+    Assert-Test ($saved.items.Count -eq 3) 'Only selected installed app identities journaled'
 
     $repeat=Invoke-UindosConsumerAppRemoval -Provider $provider -JournalDirectory $journal -Apply -AcceptAppDataLoss -OsInfo $os
-    Assert-Test ($repeat.status -eq 'unchanged' -and $script:removed -eq 2) 'Repeated apply is no-op'
+    Assert-Test ($repeat.status -eq 'unchanged' -and $script:removed -eq 3) 'Repeated apply is no-op'
 
     $script:packages['Microsoft.Copilot']=New-Fixture -Name 'Microsoft.Copilot' -Publisher 'unrecognized'
     $suspect=Get-UindosConsumerAppPlan -Provider $provider -OsInfo $os
@@ -87,7 +88,7 @@ try {
     $blocked=$false
     try { [void](Invoke-UindosConsumerAppRemoval -Provider $provider -JournalDirectory $journal -Apply -AcceptAppDataLoss -OsInfo $os) }
     catch { $blocked=$true }
-    Assert-Test ($blocked -and $script:removed -eq 2) 'Blocked app prevents removal'
+    Assert-Test ($blocked -and $script:removed -eq 3) 'Blocked app prevents removal'
 
     $script:packages['Microsoft.Copilot']=New-Fixture -Name 'Microsoft.Copilot'
     $script:packages['Microsoft.BingNews']=New-Fixture -Name 'Microsoft.BingNews'
@@ -103,6 +104,9 @@ try {
     Assert-Test (-not (Test-UindosAppxIdentity 'Microsoft.Edge' 'Microsoft.Edge_1.0.0.0_x64__8wekyb3d8bbwe')) 'Outside allowlist identity denied'
     Assert-Test (-not (Test-UindosAppxIdentity 'Microsoft.Copilot' 'Microsoft.Copilot_1.0.0.0_x64__untrusted')) 'Unknown publisher identity denied'
     Assert-Test (Test-UindosAppxIdentity 'Microsoft.Copilot' 'Microsoft.Copilot_1.0.0.0_x64__8wekyb3d8bbwe') 'Expected package identity recognized'
+    Assert-Test (Test-UindosAppxIdentity 'Clipchamp.Clipchamp' 'Clipchamp.Clipchamp_4.5.10920.0_x64__yxz26nhyzhsrt') 'Known Clipchamp identity accepted'
+    Assert-Test (-not (Test-UindosAppxIdentity 'Clipchamp.Clipchamp' 'Clipchamp.Clipchamp_4.5.10920.0_x64__8wekyb3d8bbwe')) 'Wrong Clipchamp publisher rejected'
+    Assert-Test ($names -ccontains 'Microsoft.ZuneMusic' -and $names -ccontains 'Microsoft.ZuneVideo' -and $names -ccontains 'Microsoft.Windows.Photos') 'Media applications curated'
     Write-Output 'PASS: AppX mock planning, identity protections, explicit consent, journal and partial failure'
 }
 finally {
