@@ -119,10 +119,15 @@ function Get-UindosPrivacyPolicies {
         @('security.uac', 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', 'EnableLUA'),
         @('updates.useWsus', 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', 'UseWUServer'),
         @('updates.noAutoUpdate', 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU', 'NoAutoUpdate'),
-        @('updates.wsusServer', 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate', 'WUServer')
+        @('updates.wsusServerPresent', 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate', 'WUServer')
     )
     foreach ($entry in $settings) {
-        Get-UindosRegistrySetting -Id $entry[0] -Path $entry[1] -Name $entry[2]
+        $setting = Get-UindosRegistrySetting -Id $entry[0] -Path $entry[1] -Name $entry[2]
+        if ($setting.id -eq 'updates.wsusServerPresent') {
+            # Do not publish internal organization URLs or network addresses.
+            $setting.value = $null
+        }
+        $setting
     }
 }
 

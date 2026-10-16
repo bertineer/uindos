@@ -1,0 +1,29 @@
+name: Baseline smoke tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/core/**'
+      - 'tests/**'
+      - '.github/workflows/baseline-tests.yml'
+  pull_request:
+    paths:
+      - 'src/core/**'
+      - 'tests/**'
+      - '.github/workflows/baseline-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: Smoke / ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PowerShell mock tests
+        shell: pwsh
+        run: ./tests/baseline-smoke.ps1
