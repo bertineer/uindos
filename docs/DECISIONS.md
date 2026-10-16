@@ -34,3 +34,12 @@ Update this file when a proposal has been researched and tested; do not silently
 
 
 **ADR-016: Separate scoped removal and deprovisioning (PR #8).** The fixed consumer/media allowlist expands to 21 names while preserving codecs, Media Foundation, Store/WinGet, gaming, security and WebView2. Existing-user AppX removal remains current-user-only with explicit data-loss consent; new-user servicing is a separate elevated command with separate deprovisioning consent, exact identity verification, journaling and no `-AllUsers`. Neither operation has an automatic app-data rollback. Test only in a disposable Windows VM until validated.
+
+
+## Proposed for validation — privacy and desktop hardening (2026-10-16)
+
+- **ADR-TBD-017:** Disable documented Widgets on Windows 11 Pro via `AllowNewsAndInterests=0`, plus lock-screen user preference. Prefer policy/Settings over removing Widgets runtime packages.
+- **ADR-TBD-018:** Reversible per-user notification, post-update welcome, dark mode, Explorer and Start behavior; no unsupported Pro-only policy claims. Preserve user-selected location permission.
+- **ADR-TBD-019:** Separate Win32 OneDrive uninstall with file/sync preflight, exact package provenance and explicit consent; do not delete sync folders or cloud content.
+- **ADR-TBD-020:** Measure Windows 11 Pro endpoint traffic before evaluating any optional HOSTS/DNS blocking. Never block servicing/security/identity endpoints, and never claim zero telemetry without evidence.
+- **ADR-TBD-021:** Treat Bing Search package and old-style context menu as regression-gated experiments; keep local Search and Explorer functionality intact. See [research plan](research/WIN11-PRO-26H2-HARDENING.md).
