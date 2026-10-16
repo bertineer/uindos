@@ -1,6 +1,7 @@
 # Transaction engine for curated uindos state changes.
-# M3 supports only registry-value actions under the EngineTest sandbox.
-# No production tweaks, arbitrary commands, package removal, or service edits.
+# M3 initially supported only the EngineTest sandbox; adapters may now supply
+# strict ValidateAction rules for individually reviewed privacy values.
+# No arbitrary commands, package removal, service edits or unsigned scripts.
 . (Join-Path $PSScriptRoot 'RegistryAdapter.ps1')
 
 function Assert-UindosAdapter {
@@ -11,17 +12,26 @@ function Assert-UindosAdapter {
             throw "Adapter missing trusted '$method' operation."
         }
     }
+    if ($Adapter.ContainsKey('ValidateAction') -and $Adapter.ValidateAction -isnot [scriptblock]) {
+        throw 'Adapter ValidateAction must be a scriptblock.'
+    }
 }
 
 function ConvertTo-UindosAction {
-    param([Parameter(Mandatory)]$Action)
+    param([Parameter(Mandatory)]$Action, [AllowNull()][hashtable]$Adapter)
     $id = [string]$Action.id
     $path = [string]$Action.path
     $name = [string]$Action.name
     $kind = [string]$Action.kind
     if ($id -cnotmatch '^[a-z][a-z0-9._-]{2,79}$') { throw 'Invalid action identifier.' }
     if ($name -cnotmatch '^[a-zA-Z0-9_.-]{1,120}$') { throw 'Invalid registry value name.' }
-    Assert-UindosSandboxRegistryPath -Path $path
+    if ($null -ne $Adapter -and $Adapter.ContainsKey('ValidateAction')) {
+        & $Adapter.ValidateAction $Action
+    }
+    else {
+        # Backward compatible sandbox-only behavior for test adapters.
+        Assert-UindosSandboxRegistryPath -Path $path
+    }
     if ($kind -cnotin @('String', 'DWord', 'QWord')) { throw 'Invalid action registry kind.' }
 
     $value = $Action.value
@@ -59,7 +69,7 @@ function Get-UindosPlan {
     $targets = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $steps = [System.Collections.Generic.List[object]]::new()
     foreach ($candidate in $Actions) {
-        $a = ConvertTo-UindosAction -Action $candidate
+        $a = ConvertTo-UindosAction -Action $candidate -Adapter $Adapter
         if (-not $ids.Add($a.id)) { throw 'Duplicate action ID.' }
         if (-not $targets.Add("$($a.path)|$($a.name)")) { throw 'Duplicate registry target.' }
         $prior = & $Adapter.Read $a.path $a.name
@@ -134,7 +144,7 @@ function Restore-UindosSteps {
         }
         try {
             # Revalidate journal paths: never trust a disk file to expand write scope.
-            $a = ConvertTo-UindosAction -Action $step.action
+            $a = ConvertTo-UindosAction -Action $step.action -Adapter $Adapter
             $current = & $Adapter.Read $a.path $a.name
             if (Test-UindosStateEqual -Left $current -Right $step.prior) {
                 $step.phase = 'restored'

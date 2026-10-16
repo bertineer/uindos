@@ -1,6 +1,6 @@
 # Transaction engine — M3 (sandbox-only prototype)
 
-**Status:** experimental implementation for PR #4. No production debloating, privacy, Edge, Copilot, update, services, driver or desktop actions have been attached. The only writable adapter is deliberately limited to \`HKCU:\Software\uindos\EngineTest\...\`. Do **not** widen the scope without a distinct reviewed PR and Windows 11 Pro VM validation.
+**Status:** PR #4's sandbox engine has been merged. The original test adapter is limited to \`HKCU:\Software\uindos\EngineTest\...\`. PR #5 adds a **separate, fixed-allowlist adapter** for exactly three Windows 11 Pro current-user privacy values (see [PRIVACY.md](PRIVACY.md)); there is still no Edge, Copilot, system-service, update, driver or desktop action. Do not broaden either adapter without separate review and Windows 11 Pro VM validation.
 
 ## Purpose
 
@@ -12,7 +12,7 @@ Establish a small, testable execution contract *before* developing invasive syst
 4. A failing apply attempts a best-effort reverse rollback; status distinguishes \`rolled-back\` from \`needs-review\`.
 5. A repeated apply to the already desired state is a no-op, without another transaction journal.
 
-**Important:** this is a *journaled compensating transaction*, **not** an atomic Windows transaction. Registry operations can partially complete if Windows crashes or the process is terminated; a later explicit undo is required to recover. Crashes before/after a write are handled by journaling a \`writing\` phase and comparing current, desired and prior values. Partial rollback, unknown state, unverified results and drift need human review; never claim a full rollback merely because a restore point or journal exists.
+**Important:** both the sandbox adapter and the first privacy adapter are *journaled compensating transactions*, **not** an atomic Windows transaction. Registry operations can partially complete if Windows crashes or the process is terminated; a later explicit undo is required to recover. Crashes before/after a write are handled by journaling a \`writing\` phase and comparing current, desired and prior values. Partial rollback, unknown state, unverified results and drift need human review; never claim a full rollback merely because a restore point or journal exists.
 
 ## Developer-only example (sandbox)
 

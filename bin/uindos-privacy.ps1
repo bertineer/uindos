@@ -1,0 +1,54 @@
+# Requires -Version 7.0
+<#
+.SYNOPSIS
+    Preview or explicitly apply uindos privacy v1 for the current Windows 11 Pro user.
+.DESCRIPTION
+    Default is a read-only plan. -Apply persists a local journal before writing.
+    -Undo <transaction-guid> restores the exact prior values where safe.
+.EXAMPLE
+    pwsh -NoProfile -File ./bin/uindos-privacy.ps1
+.EXAMPLE
+    pwsh -NoProfile -File ./bin/uindos-privacy.ps1 -Apply
+.EXAMPLE
+    pwsh -NoProfile -File ./bin/uindos-privacy.ps1 -Undo <transaction-guid>
+#>
+[CmdletBinding(DefaultParameterSetName='Plan')]
+param(
+    [Parameter(ParameterSetName='Apply',Mandatory)][switch]$Apply,
+    [Parameter(ParameterSetName='Undo',Mandatory)][string]$Undo
+)
+
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '..\src\core\Transactions.ps1')
+. (Join-Path $PSScriptRoot '..\src\foundation\Privacy.ps1')
+
+try {
+    $adapter = New-UindosPrivacyAdapter
+    # Always store under the current user's LocalAppData. Never upload journals.
+    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        throw 'LOCALAPPDATA is unavailable. Refusing to store transaction journal.'
+    }
+    $journal = Join-Path $env:LOCALAPPDATA 'uindos\transactions\privacy-v1'
+
+    if ($PSCmdlet.ParameterSetName -eq 'Undo') {
+        $response = Invoke-UindosUndo -TransactionId $Undo -Adapter $adapter -JournalDirectory $journal
+    }
+    else {
+        # Explicitly fail rather than attempting unsupported Windows editions.
+        $actions = @(Get-UindosPrivacyActions)
+        if ($PSCmdlet.ParameterSetName -eq 'Apply') {
+            $response = Invoke-UindosApply -Actions $actions -Adapter $adapter -JournalDirectory $journal -ConfirmChanges
+        }
+        else {
+            $response = Get-UindosPlan -Actions $actions -Adapter $adapter
+        }
+    }
+    ConvertTo-Json -InputObject $response -Depth 15
+    if ($PSCmdlet.ParameterSetName -eq 'Undo' -and $response.status -eq 'needs-review') {
+        exit 2
+    }
+}
+catch {
+    Write-Error ("uindos privacy: " + $_.Exception.Message)
+    exit 1
+}
