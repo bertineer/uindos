@@ -33,46 +33,71 @@ function Assert-UindosAppearanceContext {
 function New-UindosAppearanceAdapter {
     [CmdletBinding()]
     param([hashtable]$ThemeAdapter, [hashtable]$DesktopAdapter)
-    if (-not $PSBoundParameters.ContainsKey('ThemeAdapter')) { $ThemeAdapter = New-UindosThemeAdapter }
-    if (-not $PSBoundParameters.ContainsKey('DesktopAdapter')) { $DesktopAdapter = New-UindosDesktopBackgroundAdapter }
-    Assert-UindosAdapter -Adapter $ThemeAdapter
-    Assert-UindosAdapter -Adapter $DesktopAdapter
-    return @{
-        ValidateAction = {
-            param($Action)
-            if ([string]$Action.path -ceq 'desktop:background') {
-                Assert-UindosDesktopBackgroundAction -Action $Action
-            } else { Assert-UindosThemeAction -Action $Action }
-        }
-        Read = {
-            param([string]$Path, [string]$Name)
-            if ($Path -ceq 'desktop:background') {
-                Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
-                & $DesktopAdapter.Read $Path $Name
-            } else {
-                Assert-UindosThemeTarget -Path $Path -Name $Name
-                & $ThemeAdapter.Read $Path $Name
-            }
-        }.GetNewClosure()
-        Write = {
-            param([string]$Path, [string]$Name, [string]$Kind, $Value)
-            if ($Path -ceq 'desktop:background') {
-                Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
-                & $DesktopAdapter.Write $Path $Name $Kind $Value
-            } else {
-                Assert-UindosThemeTarget -Path $Path -Name $Name
-                & $ThemeAdapter.Write $Path $Name $Kind $Value
-            }
-        }.GetNewClosure()
-        Remove = {
-            param([string]$Path, [string]$Name)
-            if ($Path -ceq 'desktop:background') {
-                Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
-                & $DesktopAdapter.Remove $Path $Name
-            } else {
-                Assert-UindosThemeTarget -Path $Path -Name $Name
-                & $ThemeAdapter.Remove $Path $Name
-            }
-        }.GetNewClosure()
+    $hasThemeAdapter = $PSBoundParameters.ContainsKey('ThemeAdapter')
+    $hasDesktopAdapter = $PSBoundParameters.ContainsKey('DesktopAdapter')
+
+    # Keep the trusted child adapters and their private helper functions in a
+    # private module session state. A caller can invoke this returned adapter
+    # after the script that dot-sourced Appearance.ps1 has exited, so lexical
+    # function lookup and GetNewClosure are not sufficient for routing.
+    $routerModule = New-Module -ArgumentList $PSScriptRoot -ScriptBlock {
+        param([string]$FoundationPath)
+        . (Join-Path $FoundationPath 'Theme.ps1')
+        . (Join-Path $FoundationPath 'DesktopBackground.ps1')
     }
+    return & $routerModule {
+        param($ChildThemeAdapter, $ChildDesktopAdapter, [bool]$HasThemeAdapter, [bool]$HasDesktopAdapter)
+        if (-not $HasThemeAdapter) { $ChildThemeAdapter = New-UindosThemeAdapter }
+        if (-not $HasDesktopAdapter) { $ChildDesktopAdapter = New-UindosDesktopBackgroundAdapter }
+        foreach ($child in @($ChildThemeAdapter, $ChildDesktopAdapter)) {
+            if ($null -eq $child) { throw 'A trusted child appearance adapter is required.' }
+            foreach ($method in @('Read','Write','Remove')) {
+                if (-not $child.ContainsKey($method) -or $child[$method] -isnot [scriptblock]) {
+                    throw "Appearance child adapter missing trusted '$method' operation."
+                }
+            }
+        }
+        # These module-scoped references remain private to this adapter's
+        # module instance and are visible to its returned scriptblocks.
+        $script:UindosAppearanceThemeAdapter = $ChildThemeAdapter
+        $script:UindosAppearanceDesktopAdapter = $ChildDesktopAdapter
+        return @{
+            ValidateAction = {
+                param($Action)
+                if ([string]$Action.path -ceq 'desktop:background') {
+                    Assert-UindosDesktopBackgroundAction -Action $Action
+                } else { Assert-UindosThemeAction -Action $Action }
+            }
+            Read = {
+                param([string]$Path, [string]$Name)
+                if ($Path -ceq 'desktop:background') {
+                    Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceDesktopAdapter.Read $Path $Name
+                } else {
+                    Assert-UindosThemeTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceThemeAdapter.Read $Path $Name
+                }
+            }
+            Write = {
+                param([string]$Path, [string]$Name, [string]$Kind, $Value)
+                if ($Path -ceq 'desktop:background') {
+                    Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceDesktopAdapter.Write $Path $Name $Kind $Value
+                } else {
+                    Assert-UindosThemeTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceThemeAdapter.Write $Path $Name $Kind $Value
+                }
+            }
+            Remove = {
+                param([string]$Path, [string]$Name)
+                if ($Path -ceq 'desktop:background') {
+                    Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceDesktopAdapter.Remove $Path $Name
+                } else {
+                    Assert-UindosThemeTarget -Path $Path -Name $Name
+                    & $script:UindosAppearanceThemeAdapter.Remove $Path $Name
+                }
+            }
+        }
+    } $ThemeAdapter $DesktopAdapter $hasThemeAdapter $hasDesktopAdapter
 }

@@ -5,6 +5,36 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\src\foundation\Appearance.ps1')
 
 function Assert-Test { param([bool]$Condition,[string]$Message) if (-not $Condition) { throw "FAIL: $Message" } }
+function New-TestScopedThemeAdapter {
+    $module=New-Module -ArgumentList (Join-Path $PSScriptRoot '..\src\foundation') -ScriptBlock {
+        param([string]$FoundationPath)
+        . (Join-Path $FoundationPath 'Theme.ps1')
+    }
+    return & $module {
+        $script:ScopedThemeState=@{}
+        foreach ($action in @(Get-UindosThemeCatalog)) {
+            $script:ScopedThemeState["$($action.path)|$($action.name)"]=[pscustomobject]@{exists=$true;kind='DWord';value=1}
+        }
+        return @{
+            ValidateAction={ param($Action) Assert-UindosThemeAction -Action $Action }
+            Read={
+                param($Path,$Name)
+                Assert-UindosThemeTarget -Path $Path -Name $Name
+                return $script:ScopedThemeState["$Path|$Name"]
+            }
+            Write={
+                param($Path,$Name,$Kind,$Value)
+                Assert-UindosThemeTarget -Path $Path -Name $Name
+                $script:ScopedThemeState["$Path|$Name"]=[pscustomobject]@{exists=$true;kind=$Kind;value=[int]$Value}
+            }
+            Remove={
+                param($Path,$Name)
+                Assert-UindosThemeTarget -Path $Path -Name $Name
+                [void]$script:ScopedThemeState.Remove("$Path|$Name")
+            }
+        }
+    }
+}
 
 $os=[pscustomobject]@{editionId='Professional';build='26300';architecture='X64'}
 $actions=@(Get-UindosAppearanceActions -OsInfo $os)
@@ -131,6 +161,13 @@ try {
     $blocked=$false
     try { [void](Get-UindosPlan -Actions @([pscustomobject]@{id='theme.dark-apps';path='desktop:background';name='AppsUseLightTheme';kind='DWord';value=0}) -Adapter $guarded) } catch [System.NotSupportedException] { $blocked=$true }
     Assert-Test ($blocked -and $script:permissiveCalls -eq 0) 'cross-target action rejected by router validation'
+
+    # Child adapter callbacks resolve helper functions from their originating
+    # private module after the function returning the adapter has exited.
+    $scopedChild=New-TestScopedThemeAdapter
+    $scopedRouter=New-UindosAppearanceAdapter -ThemeAdapter $scopedChild -DesktopAdapter $desktopAdapter
+    $scopedPlan=Get-UindosPlan -Actions $actions -Adapter $scopedRouter
+    Assert-Test ($scopedPlan.changeCount -eq 4) 'cross-scope child ThemeAdapter callbacks retain trusted helpers'
 
     Write-Output 'PASS: combined appearance preview/apply/undo, JSON rollback after background denial, drift conflict, target routing'
 }

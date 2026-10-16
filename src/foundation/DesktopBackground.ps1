@@ -298,13 +298,55 @@ function New-UindosDesktopBackgroundAdapter {
     }
 
     $capturedBackend = $Backend
+    $capturedCatalog = @(Get-UindosDesktopBackgroundActionCatalog)
+    $nativeInitializer = (Get-Command Get-UindosDesktopBackgroundNativeType -CommandType Function).ScriptBlock
+    $validateAction = {
+        param($Action)
+        $matching = @($capturedCatalog | Where-Object { $_.id -ceq [string]$Action.id })
+        if ($matching.Count -ne 1) {
+            throw [System.NotSupportedException]::new('Action ID is not in the fixed desktop background allowlist.')
+        }
+        $rule = $matching[0]
+        if ($rule.path -cne [string]$Action.path -or
+            $rule.name -cne [string]$Action.name -or
+            $rule.kind -cne [string]$Action.kind -or
+            [string]$rule.value -cne [string]$Action.value) {
+            throw [System.NotSupportedException]::new('Action differs from the fixed desktop background default.')
+        }
+    }.GetNewClosure()
+    $assertTarget = {
+        param([string]$Path, [string]$Name)
+        $matching = @($capturedCatalog | Where-Object {
+            $_.path -ceq $Path -and $_.name -ceq $Name
+        })
+        if ($matching.Count -ne 1) {
+            throw [System.NotSupportedException]::new('Target is outside the desktop background allowlist.')
+        }
+    }.GetNewClosure()
+    # This converter is standalone (no custom helper lookups), so capture its
+    # ScriptBlock directly rather than duplicate its numeric guard here.
+    $convertValue = (Get-Command ConvertTo-UindosDesktopBackgroundDWord -CommandType Function).ScriptBlock
+    $nativeRead = {
+        & $nativeInitializer
+        return [Uindos.DesktopBackground.NativeApi]::Read()
+    }.GetNewClosure()
+    $nativeSetColor = {
+        param([int]$Value)
+        & $nativeInitializer
+        [Uindos.DesktopBackground.NativeApi]::SetColor($Value)
+    }.GetNewClosure()
+    $nativeSetImageVisible = {
+        param([int]$Value)
+        & $nativeInitializer
+        [Uindos.DesktopBackground.NativeApi]::SetImageVisible($Value)
+    }.GetNewClosure()
     return @{
-        ValidateAction = { param($Action) Assert-UindosDesktopBackgroundAction -Action $Action }.GetNewClosure()
+        ValidateAction = $validateAction
         Read = {
             param([string]$Path, [string]$Name)
-            Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+            & $assertTarget $Path $Name
             $state = if ($null -ne $capturedBackend) { & $capturedBackend.Read }
-                else { Get-UindosDesktopBackgroundNativeState }
+                else { & $nativeRead }
             if ($null -eq $state -or $null -eq $state.PSObject.Properties['Color'] -or
                 $null -eq $state.PSObject.Properties['ImageVisible'] -or
                 $null -eq $state.PSObject.Properties['MonitorCount']) {
@@ -317,8 +359,8 @@ function New-UindosDesktopBackgroundAdapter {
                 $monitorCount -lt 1) {
                 throw 'Desktop background monitor count is unknown; refusing to assume no image is visible.'
             }
-            $color = ConvertTo-UindosDesktopBackgroundDWord -Value $state.Color -Name 'Color'
-            $imageVisible = ConvertTo-UindosDesktopBackgroundDWord -Value $state.ImageVisible -Name 'ImageVisible'
+            $color = & $convertValue $state.Color 'Color'
+            $imageVisible = & $convertValue $state.ImageVisible 'ImageVisible'
             return [pscustomobject]@{
                 exists = $true
                 kind = 'DWord'
@@ -327,22 +369,21 @@ function New-UindosDesktopBackgroundAdapter {
         }.GetNewClosure()
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
-            Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+            & $assertTarget $Path $Name
             if ($Kind -cne 'DWord') { throw 'Desktop background adapter only writes DWORD values.' }
-            $number = ConvertTo-UindosDesktopBackgroundDWord -Value $Value -Name $Name
+            $number = & $convertValue $Value $Name
             if ($null -ne $capturedBackend) {
                 if ($Name -ceq 'Color') { & $capturedBackend.SetColor $number }
                 else { & $capturedBackend.SetImageVisible $number }
             }
             else {
-                Get-UindosDesktopBackgroundNativeType
-                if ($Name -ceq 'Color') { [Uindos.DesktopBackground.NativeApi]::SetColor($number) }
-                else { [Uindos.DesktopBackground.NativeApi]::SetImageVisible($number) }
+                if ($Name -ceq 'Color') { & $nativeSetColor $number }
+                else { & $nativeSetImageVisible $number }
             }
         }.GetNewClosure()
         Remove = {
             param([string]$Path, [string]$Name)
-            Assert-UindosDesktopBackgroundTarget -Path $Path -Name $Name
+            & $assertTarget $Path $Name
             throw [System.NotSupportedException]::new('Desktop background API targets always exist; removal is unsupported.')
         }.GetNewClosure()
     }
