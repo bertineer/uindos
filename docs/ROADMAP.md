@@ -6,9 +6,9 @@
 | --- | --- | --- |
 | M0 — Foundation | Philosophy, AGENTS, architecture, decision log, roadmap | Scope and safety guardrails agreed |
 | M1 — Source audit | Source-linked inventory of WinSux, Win11Debloat, WinUtil and the desktop candidates | Operations triaged by risk, edition and supported status |
-| M2 — Read-only baseline | Windows 11 capability probe, installed/provisioned package inventory and baseline report | Implemented in merged PR #3; Windows-hosted runner CI passed; dedicated Windows 11 Pro VM validation pending |
-| M3 — Transactional core | Plan/dry-run, exact state capture, log, apply/verify, guarded undo, idempotence | Merged PR #4, sandbox CI passed; dedicated Windows 11 Pro VM validation pending |
-| M4 — Privacy / debloat | Curated policy and app removals, Copilot mitigation, Edge/browser removal with WebView2 preserved | PR #8 successfully removed 19 current-user and 19 provisioned apps in the VM; independent after-state and servicing checks pending. PR #9 merged residual app allowlist and taskbar visibility. Extended privacy/desktop hardening in [26H2 plan](research/WIN11-PRO-26H2-HARDENING.md). |
+| M2 — Read-only baseline | Windows 11 capability probe, installed/provisioned package inventory and baseline report | Merged PR #3; Windows 11 Pro VM baseline 05 passed 13/13 probes. See [VM acceptance](research/VM-ACCEPTANCE-2026-10-16.md). |
+| M3 — Transactional core | Plan/dry-run, exact state capture, log, apply/verify, guarded undo, idempotence | Merged PRs #4/#13; Windows/Linux CI passed and VM Widgets/taskbar Apply, repeat Apply and exact-value Undo passed. Reboot/interruption recovery remains pending. |
+| M4 — Privacy / debloat | Curated policy and app removals, Copilot mitigation, Edge/browser removal with WebView2 preserved | Original 19+19 removals and later Quick Assist/Get Help cleanup observed in baseline 05. PR #14 separates supported Widgets policy from taskbar preferences. Online Windows Update scan and local Search passed; other acceptance limits are in [VM evidence](research/VM-ACCEPTANCE-2026-10-16.md). Edge and broader privacy remain open. |
 | M5 — Desktop | One tiler, Alacritty, private browser, shell, launcher, theme and shortcuts | Normal-user process model and reliable Explorer fallback |
 | M6 — Performance | Curated measurable optimizations | No unexplained security/servicing tradeoffs; benchmark results |
 | M7 — Reconciliation | Post-update drift report and scoped remediation | Update compatibility, duplicate-safe and no unexpected reinstalls |
