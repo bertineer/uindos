@@ -15,6 +15,12 @@ The first command prints JSON and **does not write a report file**. The second s
 
 The command ordinarily runs without administrator rights. A non-admin session marks privileged probes **unsupported** instead of prompting for elevation. An optional elevated run in an isolated Windows 11 test VM provides all-users AppX, provisioned AppX, Secure Boot and BitLocker observations without altering their state.
 
+### PowerShell 7 provisioned-AppX compatibility
+
+On Windows 11 Pro 26H2 (build 26300.9711), `Get-AppxProvisionedPackage -Online` raised `0x80040154: Class not registered` in PowerShell 7.6.7, while Windows PowerShell 5.1 and `dism.exe` succeeded. The collector now retries **only that specific COM registration error** via the inbox Windows PowerShell 5.1 executable using a fixed absolute path, without modifying the OS. The child serializes a minimal schema-tagged JSON envelope containing only package name/version; the parent validates schema, identities and versions. No system paths, user identity or raw exception detail enter the report.
+
+If the fallback also fails, the probe remains `error`; it never reports an empty provisioned inventory as success. Other failures are surfaced unchanged. The fallback requires an elevated run and Windows PowerShell 5.1. This is a targeted compatibility workaround, not an app removal mechanism.
+
 ## What is collected
 
 The versioned JSON report, **uindos.baseline/v1**, contains per-probe objects with a status (**ok**, **unsupported**, **error**, **not-collected**), an array of data records, and a sanitized explanation.
@@ -45,6 +51,7 @@ Run dependency-free, mock-only smoke tests with PowerShell 7 on Linux or Windows
 
 ~~~powershell
 pwsh -NoProfile -File ./tests/baseline-smoke.ps1
+pwsh -NoProfile -File ./tests/provisioned-appx-mock.ps1
 ~~~
 
 The GitHub workflow runs mock tests on Windows and Ubuntu. The Windows job also executes a **read-only live collector** against the hosted runner and checks its OS/service probes and JSON structure without publishing inventory data. Hosted-runner validation is not a substitute for testing the supported Windows 11 Pro configuration in a dedicated VM.
