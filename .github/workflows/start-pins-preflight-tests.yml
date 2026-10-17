@@ -1,0 +1,30 @@
+name: Start pins preflight tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/StartPinsPreflight.ps1'
+      - 'src/foundation/ExportStartPins.ps1'
+      - 'bin/uindos-start-pins-preflight.ps1'
+      - 'tests/start-pins-preflight-mock.ps1'
+      - '.github/workflows/start-pins-preflight-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/StartPinsPreflight.ps1'
+      - 'src/foundation/ExportStartPins.ps1'
+      - 'bin/uindos-start-pins-preflight.ps1'
+      - 'tests/start-pins-preflight-mock.ps1'
+      - '.github/workflows/start-pins-preflight-tests.yml'
+permissions:
+  contents: read
+jobs:
+  start-pins-preflight:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mock parser and privacy-boundary tests
+        shell: pwsh
+        run: ./tests/start-pins-preflight-mock.ps1

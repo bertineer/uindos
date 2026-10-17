@@ -53,3 +53,8 @@ preserve WebView2 and its servicing.
 has passed VM Apply/repeat/Undo and Start/web-versus-local Search observations
 after a manual Search flyout refresh. Reboot persistence remains pending. Pins,
 package removals, indexing replacements and service tuning remain separate.
+
+**Start pins preflight candidate.** [Read-only export and registration checks](START-PINS-PREFLIGHT.md)
+separate pinned WhatsApp/LinkedIn entries from installed packages. Current pin
+state and reset/restore limitations must be reviewed before layout changes.
+Taskbar cleanup needs separate handling for user-created pins.
