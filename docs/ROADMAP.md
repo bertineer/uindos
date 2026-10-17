@@ -67,6 +67,10 @@ the correct type for Start policy JSON.
 **Start reset candidate.** The [one-time reset command](START-RESET.md) implements
 preview, explicitly acknowledged Apply and policy-only Undo with a fresh private
 layout backup and conservative authority checks. Mocked transactions and native
-normal/elevated read-only previews pass. Actual policy application, coordinated
-sign-in, empty-layout observation and subsequent pin customization remain pending.
-Exact original-layout reconstruction is not promised for absent-package pins.
+normal/elevated read-only previews pass. On Pro x64 26300.9711, live elevated
+Apply as the same Explorer user/session and same-operation repeat passed; exact
+registry kinds/data were read back and both journal steps were applied. The
+same-session Start Pinned surface was empty, All apps remained visible, and
+local Start and Explorer filename search worked. Later sign-in persistence,
+live policy Undo and subsequent pin customization remain pending. Exact
+original-layout reconstruction is not promised for absent-package pins.
