@@ -83,6 +83,7 @@ package registration. It can retain a private layout export for later review;
 it does not reset pins or uninstall apps.
 
 The separate [one-time Start reset](docs/START-RESET.md) now provides preview,
-acknowledged Apply and policy-only Undo. Native preview and mocked transactions
-pass; actual reset/sign-in acceptance remains pending. Original pin layout
+acknowledged Apply and policy-only Undo. Live Apply and unchanged repeat passed;
+the VM's pins went from ten to zero, confirmed by export and Start UI without
+sign-out. Persistence across a later sign-in remains pending. Original pin layout
 recovery is not guaranteed, particularly for pins whose apps are absent.

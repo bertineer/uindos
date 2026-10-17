@@ -106,7 +106,7 @@ function Invoke-UindosStartReset {
     }
     $context = Assert-UindosStartResetContext -RequireElevation:($Mode -ne 'Preview')
     $adapter = New-UindosStartResetAdapter
-    $behaviorNote = 'Policy verification is not layout verification. A coordinated later sign-in is required. UndoPolicy restores policy values only; original pins may not be recoverable.'
+    $behaviorNote = 'Policy verification is not layout verification. Check Start separately; activation or persistence checks may require a coordinated sign-in. UndoPolicy restores policy values only; original pins may not be recoverable.'
     if ($Mode -eq 'Preview') {
         $actions = @(Get-UindosStartResetActions)
         $guard = Test-UindosStartResetGuard -Observations (Get-UindosStartResetGuardData)

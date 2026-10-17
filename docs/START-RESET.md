@@ -10,8 +10,14 @@ pwsh -NoProfile -File ./bin/uindos-start-reset.ps1
 This first implementation accepts Windows 11 Pro/Pro N x64 or ARM64, build
 26300 with UBR 9711 or later in that build family, excluding detected preview
 builds. This is a narrow validation boundary, not Microsoft's full support range.
-The native read-only preview passed on Pro x64 26300.9711. Actual policy Apply,
-sign-in behavior and layout recovery are **pending VM acceptance**.
+The native read-only preview passed on Pro x64 26300.9711. A live elevated
+Apply as the same Explorer user/session completed with status `applied`; the
+repeat returned `unchanged` in the same operation. Both owned values were read
+back with their exact registry kinds and data, and the journal recorded both
+steps as applied. In the same session, Start showed an empty Pinned surface,
+All apps remained visible, and local Start search returned installed apps.
+These observations establish current-session behavior only; persistence after
+a later sign-in remains **pending VM acceptance**.
 
 ## Recovery limit and application
 
@@ -93,14 +99,16 @@ Native previews passed as both normal and elevated versions of the same Explorer
 user. The normal-user run verified unchanged policy state and no temporary export
 directories left behind; the original inventory collector still runs unelevated.
 
-Before applying in the VM, retain a fresh private backup and acknowledge the
-layout recovery limit. After application, registry readback establishes only the
-policy state. Coordinate a later sign-out/sign-in separately; the command never
-interrupts the session or restarts Explorer/Search/Start. Then export again and
-check that pins are empty, installed apps remain available, local Start and
-Explorer Search work, and subsequent user pin edits survive another sign-in.
-Whether removing/reapplying the same apply-once payload runs again remains
-unproven. Do not edit internal one-time markers to force it.
+The accepted live Apply created its fresh private backups, metadata and journal
+before mutation. An immediate post-Apply export reported
+zero pins, and the UI checks above confirmed the empty Pinned surface in the same
+session. Explorer filename search also returned the expected results. No
+sign-out, reboot or shell restart has occurred, so persistence after a later
+sign-in and subsequent user pin customization remain untested. Live policy Undo
+has not been run because it could affect the apply-once lifecycle; its
+policy-only recovery boundary remains documented above. Whether
+removing/reapplying the same apply-once payload runs again remains unproven. Do
+not edit internal one-time markers to force it.
 
 There are no package removals, service/security/Windows Update changes, taskbar
 changes, scheduled tasks or persistent privileged helpers. Source applicability

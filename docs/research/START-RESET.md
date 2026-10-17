@@ -15,8 +15,11 @@ absent-package WhatsApp/LinkedIn pins.
 [Start policy settings](https://learn.microsoft.com/en-us/windows/configuration/start/policy-settings#configure-start-pins)
 defines Configure Start Pins as replacing the current/default list and lists
 both user and computer GPO scopes. uindos uses only the user scope. An empty
-`pinnedList` is the chosen configuration; its actual empty-layout outcome on the
-VM is pending, separate from valid policy value readback.
+`pinnedList` is the chosen configuration. On Pro X64 26300.9711, acknowledged
+Apply and unchanged repeat passed; a fresh normal-user export had zero pins
+(previously ten), and Start visibly showed an empty Pinned section in the same
+session without a sign-out or shell restart. Later sign-in persistence remains
+pending, separate from this observed outcome and valid policy value readback.
 
 The VM's `C:\Windows\PolicyDefinitions\StartMenu.admx` policy
 `ConfigureStartPins`, lines 586–597, defines the Explorer policy key, enabled
@@ -29,9 +32,9 @@ The correct JSON type is therefore REG_EXPAND_SZ; see the existing
 source and exact-value journal tests.
 
 Initial implementation is deliberately gated to Pro/Pro N X64/Arm64 build
-26300 UBR>=9711, excluding detected preview builds. Native preview has passed
-only on Pro X64 26300.9711. A broader Microsoft-supported OS is not automatically
-accepted by this experimental workflow. Policy-only Undo does not use this
+26300 UBR>=9711, excluding detected preview builds. Native preview and live
+Apply/repeat have passed only on Pro X64 26300.9711. A broader Microsoft-supported
+OS is not automatically accepted by this experimental workflow. Policy-only Undo does not use this
 build gate, to allow removal after an update.
 
 Management detection reads local join/enrollment metadata, local Group Policy
