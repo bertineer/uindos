@@ -127,3 +127,13 @@ records working local Search/Explorer, one query without visible web results,
 and a completed five-minute quiet-session sample peaking at 2.484 GB / 2.314 GiB.
 Background update/scan activity was unknown; neither memory threshold was met.
 Cross-device and Windows settings backup enforcement remain unverified.
+
+### Native baseline preferences
+
+The [native preference guide](docs/NATIVE-BASELINE-PREFERENCES.md) records the
+compact Start layout, recommendation/history choices, Settings/Network shortcuts,
+taskbar Resume Off and Explorer opening This PC. Early update delivery was
+already Off; normal security and cumulative servicing remain available.
+[Share app suggestions](docs/SHARE-SUGGESTIONS.md) are Off. Gallery is hidden
+through a separately documented build-specific experiment with verified Undo.
+These observations do not establish RAM savings or a combined setup runner.

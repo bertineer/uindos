@@ -34,6 +34,15 @@ not implemented by this documentation change.
 
 ## Under evaluation
 
+**ADR-029: Validate native baseline preferences before automating their storage.**
+Use native Settings/Folder Options for the selected Start, taskbar, Share and
+Explorer choices, retaining captured UI states and conditional rollback. Keep
+normal security/cumulative servicing when early update delivery is Off.
+Treat Gallery's per-user class override as a build-specific experiment with
+exact-state journals, rather than a supported general Windows policy. No
+undocumented enterprise policy is substituted for a Pro UI preference. See the
+[native preference record](NATIVE-BASELINE-PREFERENCES.md).
+
 **ADR-028: Disable cross-device continuation with the documented EnableCDP policy.**
 Use only machine EnableCdp DWORD0, bounded authority checks and exact-state
 journals. Accept the documented loss of Windows settings backup as part of
