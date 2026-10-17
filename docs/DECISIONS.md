@@ -2,6 +2,20 @@
 
 ## Accepted — 2026-10-16
 
+**ADR-026: Target a fresh Windows 11 Pro installation.** uindos is designed
+to build an opinionated baseline from a fresh Windows 11 Pro installation,
+before personal files, cloud-sync accounts, daily-use applications and desktop
+customization are introduced. It is not a general cleanup tool for an existing
+daily-use installation. A fresh installation is a prerequisite, not evidence
+that local files are disposable or that every operation is reversible.
+
+The future combined entry point must prominently warn about this intended
+starting state before modifications, disclose application removal, settings
+and layout resets, and potential data-loss boundaries. Keep preview available
+and preserve per-operation safety/consent checks; a global
+warning does not replace them. The combined runner and warning are planned,
+not implemented by this documentation change.
+
 **ADR-001: uindos is opinionated, not a toolkit.** One preferred configuration; users can fork or modify files. No profile marketplace or broad tweak UI.
 
 **ADR-002: Privacy and security coexist.** Reduce advertising, AI integration, consumer features and diagnostics wherever effective. Never silently disable Windows security controls to achieve it.
