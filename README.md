@@ -74,3 +74,10 @@ the same desktop account in a temporary elevated policy command, with private
 journals. The [Search guide](docs/SEARCH-SUGGESTIONS.md)
 separates documented File Explorer history behavior from observed Start web
 results; local Search and indexing remain available.
+
+### Start pin inventory
+
+The [read-only Start pin preflight](docs/START-PINS-PREFLIGHT.md) counts current
+pins and checks the two known WhatsApp/LinkedIn identities against current-user
+package registration. It can retain a private layout export for later review;
+it does not reset pins or uninstall apps.
