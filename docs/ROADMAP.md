@@ -67,6 +67,12 @@ separate pinned WhatsApp/LinkedIn entries from installed packages. Current pin
 state and reset/restore limitations must be reviewed before layout changes.
 Taskbar cleanup needs separate handling for user-created pins.
 
+Native taskbar cleanup on the fresh VM removed Explorer, Edge and Store through
+the normal user's supported jump-list controls. Final UI/screenshot checks show
+zero pinned app buttons, with running Explorer/Terminal and package registrations
+preserved. [Procedure and limits](TASKBAR-PINS.md) remain separate from a future
+production pin-reset command and sign-in/update persistence tests.
+
 **Start policy prerequisite.** The transaction core can now capture and restore
 literal `REG_EXPAND_SZ` data without expanding environment variables. Isolated
 registry Apply/repeat/Undo and affected module regressions passed. This enables
