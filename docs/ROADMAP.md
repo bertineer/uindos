@@ -125,3 +125,12 @@ No service-disable bundle, package deletion or replacement software is included.
 sets EnableCdp DWORD0 with authority guards and exact-state Undo. This privacy
 choice also prevents Windows settings backup. Reboot/paired-device acceptance
 and controlled-idle memory remain separate gates; no CDP service is disabled.
+
+**Native baseline preferences.** The [native preference record](NATIVE-BASELINE-PREFERENCES.md)
+documents verified Start, taskbar Resume, folder-shortcut and This PC choices,
+with Share app suggestions Off and the early-update switch already Off.
+The Gallery navigation override is a separately identified build-specific
+experiment with exact-absence Undo and visual hide/restore checks. These are
+manual/VM-validated procedures, not a combined production runner. Later reboot
+and update persistence remain pending; no additional idle-memory result or
+service-disable benefit is established.
