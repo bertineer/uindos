@@ -52,8 +52,8 @@ the signed range preserves every prior DWORD bit without allowing QWORD data.
 
 The fix accepts only Int32 or Int64 within signed Int32 bounds, then passes an
 Int32 to the DWORD provider write. The fixed three desired defaults and target
-allowlist are unchanged. It requires no elevation, service modification or
-journal migration. Existing private journals remain compatible; guarded Undo
+allowlist are unchanged. The numeric fix itself adds no privilege requirement,
+service modification or journal migration. Existing private journals remain compatible; guarded Undo
 still refuses external drift.
 
 Regression coverage: saved/reloaded prior values 7, -1, Int32.MinValue and
@@ -66,6 +66,41 @@ separate VM work.
 
 ## Security constraints for future expansions
 
-Do not broaden the production adapter through a generic path prefix or by allowing arbitrary `HKCU` writes. Any new rule needs an explicit ID/path/name/type/value allowlist and separate acceptance tests. Store journals under the current user's profile and never upload them. No broad download, stop service, or shell exec capability is introduced.
+### Policy writer context — 2026-10-17
+
+The initial CLI documentation recommended non-elevated Apply even though
+HKCU policy keys can restrict writes. Match the validated Search/Start writer
+contract: temporary elevation only for Apply/Undo, with the same SID/session
+as the normal Explorer desktop; preview stays read-only without elevation.
+Reject context failures before journals or writes. Never alter ACLs or launch
+a permanently elevated desktop process. A private absolute journal override
+allows durable VM evidence without changing the compatible default location.
+
+Rechecked the official [Experience policy mappings](https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-experience):
+both tailored-experiences and third-party Spotlight-suggestions settings list
+user scope and Pro support. Installed CloudContent.admx lines45–53 and85–93
+map the exact existing registry names to enabled DWORD1. Inspected file SHA-256:
+`E581B12080E9D9F5397C1C2AB3D24CFF2FF70688E0CF632138940D452A329537`.
+No source code is copied. The pinned .NET registry reference already cited
+above explains representation, not Windows policy ACL behavior.
+
+The CSP entries depend on Windows Spotlight being allowed. Do not enable
+Spotlight to manufacture a visible test, or claim that this small policy pair
+removes all recommendations. Registry Apply/Undo acceptance and observable
+Windows behavior remain separate; these changes do not establish diagnostic
+data off, network silence, or a machine-wide advertising-ID policy.
+
+Actual VM acceptance on Pro x64 26300.9711 / PowerShell 7.6.7: normal-user
+preview created no journal; non-elevated Apply/Undo were rejected before engine
+effects. Opening the CloudContent key with write access failed for the normal
+user. Elevated same-Explorer-user Apply changed the two absent policies;
+repeat was unchanged, Undo restored exact absence with zero conflicts, and
+final reapply reached the desired state. The existing advertising-ID DWORD0
+remained unchanged. Live restoration of a different existing prior DWORD and
+effective Windows/Settings behavior were not tested. Native read-only adapter,
+portable policy and context/CLI tests pass. Defender AV/realtime/tamper/service
+signals were enabled before and after. No sign-out, reboot or ACL change ran.
+
+Do not broaden the production adapter through a generic path prefix or by allowing arbitrary `HKCU` writes. Any new rule needs an explicit ID/path/name/type/value allowlist and separate acceptance tests. Store journals under the current user's profile or an explicitly selected private absolute directory and never upload them. No broad download, stop service, or shell exec capability is introduced.
 
 **Not implemented:** device advertising ID Group Policy, privacy settings for other accounts, disabling optional diagnostics, task/deprovisioning operations, Edge and Copilot removal, post-update reconciliation. Those remain in the roadmap.

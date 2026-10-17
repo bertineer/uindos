@@ -30,6 +30,9 @@ jobs:
       - name: Mock-only privacy policy tests
         shell: pwsh
         run: ./tests/privacy-mock.ps1
+      - name: Privacy context and CLI orchestration tests
+        shell: pwsh
+        run: ./tests/privacy-context-mock.ps1
       - name: Live Windows read-only privacy guard checks
         if: runner.os == 'Windows'
         shell: pwsh

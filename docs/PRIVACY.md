@@ -18,12 +18,15 @@ Windows 11 can still show recommendations after disabling tailored experiences, 
 
 ## Commands
 
-Use PowerShell 7 from a normal, non-elevated session **for the account you want to configure**:
+Use PowerShell 7 for the account that owns the normal Explorer desktop. Preview
+works without elevation; Apply and Undo require a temporary elevated process
+for that same account and session:
 
 ~~~powershell
 # Preview only; prints JSON. No journal or registry writes.
 pwsh -NoProfile -File ./bin/uindos-privacy.ps1
 
+# Apply/Undo: temporary elevated PowerShell as the same Explorer user.
 # Explicitly apply the three fixed settings after reviewing the plan.
 pwsh -NoProfile -File ./bin/uindos-privacy.ps1 -Apply
 
@@ -32,6 +35,17 @@ pwsh -NoProfile -File ./bin/uindos-privacy.ps1 -Undo 00000000-0000-0000-0000-000
 ~~~
 
 The GUID shown above is an illustrative placeholder; replace it with the actual transaction ID. Never use a placeholder ID expecting it to work.
+
+The command never elevates itself. Apply/Undo reject a non-elevated process or
+a different user/session from Explorer before opening a journal or writing
+policy. No registry ACLs or ownership are changed. The three fixed HKCU targets
+are unchanged; HKCU scope does not imply that policy keys are user-writable.
+
+An optional absolute `-JournalDirectory` selects operator-controlled persistent
+storage instead of the default LocalAppData directory. Use the same directory
+for Apply and Undo. On the disposable VM, use private storage on the persistent
+Z: drive; its host permissions are the operator's responsibility. Relative
+overrides are refused. An override does not require LOCALAPPDATA to be set.
 
 `-Apply` is required to write. There is no consent-by-default or hidden schedule. Windows user Group Policy refreshes or user settings may change a value later. Re-running a preview will show the current state; automatic post-update reconciliation is a future milestone.
 
@@ -42,6 +56,7 @@ The tool:
 - Enforces exact action ID, registry key, value name, registry kind and desired value; denies all other targets.
 - Captures each original value **and type** before writing.
 - Journals each transaction in `%LOCALAPPDATA%\uindos\transactions\privacy-v1\<transactionId>.json` prior to changing anything.
+- Uses `-JournalDirectory` instead when explicitly provided, preserving existing journals and the default location.
 - Rechecks the snapshot before each write, verifies the resulting DWORD, and treats an unchanged system as a no-op.
 - Restores saved values on explicit Undo or attempts rollback after failed apply. It will not overwrite an externally modified value: instead it reports `needs-review`. An originally absent value is removed on undo, but an empty key created by uindos may remain.
 
@@ -71,10 +86,25 @@ The mock suite covers existing DWORD Undo through a saved/reloaded journal,
 including both signed 32-bit limits. The Windows suite also invokes the real
 Write delegate with registry provider calls intercepted to verify normalization
 and rejection without changing registry state. These tests passed on the
-Windows 11 Pro build 26300.9711 VM with PowerShell 7.6.7; live privacy
-Apply/Undo and effective policy behavior remain pending.
+Windows 11 Pro build 26300.9711 VM with PowerShell 7.6.7. The additional
+`tests/privacy-context-mock.ps1` covers context rejection before engine effects,
+read-only preview without LOCALAPPDATA, absolute journal overrides and the
+compatible default journal location.
 
-A dedicated Windows 11 Pro VM must still validate effective behavior, apply/undo, Group Policy precedence, current-user scope, and Settings UI observability. Details: [research/PRIVACY-DEFAULTS.md](research/PRIVACY-DEFAULTS.md).
+On that VM, normal-user preview passed without creating a journal, and normal
+Apply/Undo failed at the elevation guard before journals or writes. A read-only
+capability probe confirmed the normal user cannot open the CloudContent key
+for writing. Temporary elevated same-Explorer-user Apply changed two previously
+absent policy values; repeat returned `unchanged`. Undo removed those values,
+restored the exact initial state with zero conflicts, and preserved the already
+zero advertising-ID preference. Final reapply passed with zero pending changes.
+Defender service, antivirus, realtime and tamper protection stayed enabled.
+
+This verifies the actual registry round trip and current-user writer context.
+It does not test native restoration of a different existing DWORD (covered by
+mocks/intercepted tests), effective Windows behavior, Group Policy precedence,
+Settings UI observability, or later sign-in persistence. Those remain separate
+acceptance work. Details: [research/PRIVACY-DEFAULTS.md](research/PRIVACY-DEFAULTS.md).
 
 ## Limitations and next steps
 
