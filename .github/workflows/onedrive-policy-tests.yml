@@ -1,0 +1,30 @@
+name: OneDrive file-sync policy tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/OneDrivePolicy.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-onedrive-policy.ps1'
+      - 'tests/onedrive-policy-mock.ps1'
+      - '.github/workflows/onedrive-policy-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/OneDrivePolicy.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-onedrive-policy.ps1'
+      - 'tests/onedrive-policy-mock.ps1'
+      - '.github/workflows/onedrive-policy-tests.yml'
+permissions:
+  contents: read
+jobs:
+  onedrive-policy:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-platform mocked OneDrive policy tests
+        shell: pwsh
+        run: ./tests/onedrive-policy-mock.ps1
