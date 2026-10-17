@@ -59,3 +59,11 @@ tests cover non-admin denial, blocked/unknown authority, prior DWORD recovery,
 write failure and drift. Production adapter read and intercepted-write checks
 passed without extra registry changes. Reboot and paired-device behavior
 acceptance remain pending; these results establish no memory savings.
+
+After a coordinated reboot, DWORD0 readback persisted. The local-account
+Windows backup UI showed its app/preferences switches Off and disabled, while
+the Share page showed Nearby sharing Off with disabled options. These are
+limited UI observations: account prerequisites confound backup attribution,
+and no paired-device discovery/continuation test was performed. CDP services
+remained running. Effective behavior acceptance remains pending; see the
+[post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md).

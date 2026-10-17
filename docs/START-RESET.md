@@ -102,9 +102,11 @@ directories left behind; the original inventory collector still runs unelevated.
 The accepted live Apply created its fresh private backups, metadata and journal
 before mutation. An immediate post-Apply export reported
 zero pins, and the UI checks above confirmed the empty Pinned surface in the same
-session. Explorer filename search also returned the expected results. No
-sign-out, reboot or shell restart has occurred, so persistence after a later
-sign-in and subsequent user pin customization remain untested. Live policy Undo
+session. Explorer filename search also returned the expected results. A later
+coordinated reboot/sign-in retained zero pins in a normal-user export, and Start's
+All apps view remained available. See the
+[post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md).
+Subsequent user pin customization remains untested. Live policy Undo
 has not been run because it could affect the apply-once lifecycle; its
 policy-only recovery boundary remains documented above. Whether
 removing/reapplying the same apply-once payload runs again remains unproven. Do

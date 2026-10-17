@@ -105,6 +105,14 @@ active-session sampling exceeds the target and is not an idle benchmark.
 Use repeated physical-memory and CPU samples under the same conditions;
 never sum shared working sets or subtract assumed tooling overhead.
 
+The [post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md)
+completed 61 samples over five minutes with operator-attested quiet-session
+context and unknown background update/scan activity. Peak used physical RAM was
+2.484 GB / 2.314 GiB, above both thresholds. Zero Start/taskbar pins persisted,
+and local Search/Explorer plus one unmatched query without visible web results
+passed observation. Cross-device/backup enforcement remains pending; no service
+experiment or causal RAM saving is established.
+
 **Edge background policies.** A [separate preview-first command](EDGE-BACKGROUND.md)
 manages only Startup Boost and browser background mode. Native two-policy
 Apply, unchanged repeat, exact prior-absence Undo and final reapply passed on
