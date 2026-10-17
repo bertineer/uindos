@@ -9,3 +9,9 @@ Files On-Demand state and local hydration are always reported as unknown and req
 See [the research note](research/ONEDRIVE-PREFLIGHT.md) for Microsoft source applicability, interpretation limits, and the human review required before any separate uninstall proposal. There is no automatic rollback for unlinking, moving Known Folders, or uninstalling OneDrive.
 
 Run the portable mock suite with `pwsh -NoProfile -File ./tests/onedrive-preflight-mock.ps1`. Mocks and elevated/non-elevated read-only Windows 11 Pro build 26300.9711 VM runs passed. The VM reported one current-user registration, a running process, account registry metadata present, and unknown sign-in, known-folder placement and hydration. That result is a preflight observation, not authorization or proof of safe removal.
+
+On 2026-10-17, separately authorized native removal of the fresh VM's client
+succeeded after additional local data/redirect inspection and signed-installer
+recovery preparation. Post-removal preflight reported no registration/process.
+The local folders remain; no general production uninstall/delete capability
+was added. See [client-removal evidence and limits](research/CLIENT-UNINSTALL-2026-10-17.md).

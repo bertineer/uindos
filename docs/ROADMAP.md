@@ -24,6 +24,14 @@
 
 ## Decisions still to validate
 
+The [2026-10-17 client-removal validation](research/CLIENT-UNINSTALL-2026-10-17.md)
+records successful current-user OneDrive client removal, retained local
+folders/recovery installers, and an Edge force-uninstall attempt refused by
+the native installer with exit93. Edge remains installed; WebView2/updater
+component checks passed. Neither result establishes controlled-idle RAM or
+complete privacy acceptance. A generic destructive removal command remains
+out of scope for this evidence update.
+
 - Tiling manager: HyprWin vs Komorebi vs GlazeWM; elevated execution and Defender exclusion are disqualifying until corrected.
 - Browser update channel for Ungoogled Chromium, security release lag and package provenance.
 - Windows 11 Pro constraints for policy-based telemetry controls and anti-reinstall controls.
