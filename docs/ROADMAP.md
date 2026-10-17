@@ -105,6 +105,13 @@ active-session sampling exceeds the target and is not an idle benchmark.
 Use repeated physical-memory and CPU samples under the same conditions;
 never sum shared working sets or subtract assumed tooling overhead.
 
+The [post-reboot services/Edge review](research/SERVICES-EDGE-REVIEW-2026-10-17.md)
+inventoried 269 services, including 85 running, without changing their state or
+configuration. SysMain is the first proposed isolated performance trial;
+comparable measurements and launch/regression checks remain prerequisites.
+Edge is still installed: current eligibility and the unchanged installer do
+not resolve its earlier exit93 refusal. WebView2 and its updater are preserved.
+
 The [post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md)
 completed 61 samples over five minutes with operator-attested quiet-session
 context and unknown background update/scan activity. Peak used physical RAM was
