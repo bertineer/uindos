@@ -275,7 +275,7 @@ function New-UindosSharedExperiencesAdapter {
                 return [pscustomobject]@{ exists=$false; kind=$null; value=$null }
             }
             $key = Get-Item -LiteralPath $Path -ErrorAction Stop
-            if (@($key.GetValueNames()) -cnotcontains $Name) {
+            if (@($key.GetValueNames()) -notcontains $Name) {
                 return [pscustomobject]@{ exists=$false; kind=$null; value=$null }
             }
             Assert-UindosSharedExperiencesDwordKind -Kind $key.GetValueKind($Name).ToString()
@@ -296,7 +296,7 @@ function New-UindosSharedExperiencesAdapter {
             Assert-UindosSharedExperiencesTarget -Path $Path -Name $Name
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) { return }
             $key = Get-Item -LiteralPath $Path -ErrorAction Stop
-            if (@($key.GetValueNames()) -ccontains $Name) {
+            if (@($key.GetValueNames()) -contains $Name) {
                 Remove-ItemProperty -LiteralPath $Path -Name $Name -ErrorAction Stop
             }
         }
