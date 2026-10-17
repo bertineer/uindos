@@ -70,6 +70,10 @@ Original project content is under the [MIT License](LICENSE). Third-party softwa
 
 Preview taskbar Search and Task View with `pwsh -NoProfile -File ./bin/uindos-taskbar.ps1`; Widgets use the separate [supported device policy command](docs/WIDGETS.md). Apply with `-Apply`, undo with `-Undo <transaction-guid>`. These commands do not reset existing pinned applications.
 
+[Existing app pins](docs/TASKBAR-PINS.md) use Windows' native unpin controls.
+The VM's Explorer, Edge and Store pins were removed with installed packages
+preserved; running apps still appear. Future sign-in/update persistence is pending.
+
 ### Appearance defaults
 
 Preview the curated dark Windows/app color modes and solid-black desktop with
