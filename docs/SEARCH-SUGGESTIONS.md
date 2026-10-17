@@ -57,6 +57,10 @@ suppressed them again.
 The existing Search process initially continued showing web suggestions.
 Only the current user's SearchHost process was manually refreshed during
 testing; the shipped command never stops it. No Explorer restart, sign-out or
-reboot occurred. Reboot persistence, other builds and broader query/network
-behavior remain unverified. Defender AV/realtime/tamper stayed enabled, and
+reboot occurred during that test. After a later coordinated reboot, the policy
+persisted, local Search found PowerShell, Explorer found the known filename,
+and one unmatched query showed no results or visible web results. See the
+[post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md).
+Other builds and broader query/network behavior remain unverified.
+Defender AV/realtime/tamper stayed enabled, and
 Windows Search stayed running. See the [detailed acceptance limits](research/SEARCH-SUGGESTIONS.md).

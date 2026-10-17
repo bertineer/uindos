@@ -72,7 +72,8 @@ Preview taskbar Search and Task View with `pwsh -NoProfile -File ./bin/uindos-ta
 
 [Existing app pins](docs/TASKBAR-PINS.md) use Windows' native unpin controls.
 The VM's Explorer, Edge and Store pins were removed with installed packages
-preserved; running apps still appear. Future sign-in/update persistence is pending.
+preserved; running apps still appear. Zero pins persisted through a coordinated
+reboot; future update persistence remains pending.
 
 ### Appearance defaults
 
@@ -101,7 +102,7 @@ it does not reset pins or uninstall apps.
 The separate [one-time Start reset](docs/START-RESET.md) now provides preview,
 acknowledged Apply and policy-only Undo. Live Apply and unchanged repeat passed;
 the VM's pins went from ten to zero, confirmed by export and Start UI without
-sign-out. Persistence across a later sign-in remains pending. Original pin layout
+sign-out. A later coordinated reboot/sign-in retained zero pins. Original pin layout
 recovery is not guaranteed, particularly for pins whose apps are absent.
 
 ### Edge background activity
@@ -120,3 +121,9 @@ elevation. It disables cross-device continuation after reboot and prevents
 Windows settings backup. The [guide](docs/SHARED-EXPERIENCES.md) explains
 authority checks, exact recovery and pending behavior acceptance. Services
 remain unchanged; RAM savings are not established.
+
+The [post-reboot checkpoint](docs/research/POST-REBOOT-CHECKPOINT-2026-10-17.md)
+records working local Search/Explorer, one query without visible web results,
+and a completed five-minute quiet-session sample peaking at 2.484 GB / 2.314 GiB.
+Background update/scan activity was unknown; neither memory threshold was met.
+Cross-device and Windows settings backup enforcement remain unverified.

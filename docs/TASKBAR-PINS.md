@@ -37,6 +37,10 @@ Repinning/reordering was not performed as a rollback test; these observations
 do not claim automatic exact-layout recovery, other-user cleanup or persistence
 across a future sign-in/update. Start pin reset is a separate operation.
 
+A later coordinated reboot/sign-in retained zero taskbar app pins in the
+normal-user UI inventory and screenshot. Update persistence remains untested.
+See the [post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md).
+
 This is a validated manual cleanup procedure, not a production all-user pin
 reset command. Policy-created pins and user-created pins need distinct handling
 in a future combined runner. No physical-memory saving is claimed from icons
