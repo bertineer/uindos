@@ -41,3 +41,10 @@ The post-PR8 VM baseline and snapshot should precede additional destructive chan
 **PR #12 — Notifications and post-update welcome.** Add a journaled, reversible per-user preference module for post-update welcome, tips and finish-setup suggestions. Pro CSP limitations and behavior verification documented; does not block initial OOBE or notifications security infrastructure.
 
 **Next candidate — OneDrive Win32 preflight.** Read-only detection only; see [the preflight guide](ONEDRIVE-PREFLIGHT.md) and [source research](research/ONEDRIVE-PREFLIGHT.md). Unlink/uninstall remains separate and requires informed review of sync, Known Folder Move, backup, and hydration state.
+
+**Appearance defaults candidate.** Curated dark Windows/app modes and a black
+desktop are exposed through a separate [journaled appearance command](APPEARANCE.md).
+Preview, exact managed-state undo, idempotence and failure/drift handling are
+tested separately from native shell/UI behavior. OneDrive removal still needs
+the informed data/sync review; Edge browser removal remains separate and must
+preserve WebView2 and its servicing.

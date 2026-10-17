@@ -40,6 +40,16 @@ Update this file when a proposal has been researched and tested; do not silently
 
 ## Proposed for validation — privacy and desktop hardening (2026-10-16)
 
+**ADR-023: One curated per-user appearance.** Dark Windows/app color modes and
+a black desktop use the existing journaled engine with separate fixed targets.
+The desktop API preserves wallpaper/slideshow sources for undo; per-monitor
+image visibility is checked without confusing slideshow flags with background
+enable state. Default preview is read-only, changes run as the Explorer user,
+and no image download, package deletion or permanent helper is introduced.
+See [source applicability](research/APPEARANCE-DEFAULTS.md) and
+[behavior/recovery](APPEARANCE.md); on-device and reboot acceptance remain
+separate from mocked tests.
+
 - **ADR-TBD-017:** Disable documented Widgets on Windows 11 Pro via `AllowNewsAndInterests=0`, plus lock-screen user preference. Prefer policy/Settings over removing Widgets runtime packages.
 - **ADR-TBD-018:** Reversible per-user notification, post-update welcome, dark mode, Explorer and Start behavior; no unsupported Pro-only policy claims. Preserve user-selected location permission.
 - **ADR-TBD-019:** Separate Win32 OneDrive uninstall with file/sync preflight, exact package provenance and explicit consent; do not delete sync folders or cloud content.

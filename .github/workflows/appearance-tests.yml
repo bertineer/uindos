@@ -1,0 +1,41 @@
+name: Appearance defaults tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/Theme.ps1'
+      - 'src/foundation/DesktopBackground.ps1'
+      - 'src/foundation/Appearance.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-appearance.ps1'
+      - 'tests/*appearance*'
+      - 'tests/theme-mock.ps1'
+      - 'tests/desktop-background-mock.ps1'
+      - '.github/workflows/appearance-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/Theme.ps1'
+      - 'src/foundation/DesktopBackground.ps1'
+      - 'src/foundation/Appearance.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-appearance.ps1'
+      - 'tests/*appearance*'
+      - 'tests/theme-mock.ps1'
+      - 'tests/desktop-background-mock.ps1'
+      - '.github/workflows/appearance-tests.yml'
+permissions:
+  contents: read
+jobs:
+  appearance:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Portable theme, background and combined transaction mocks
+        shell: pwsh
+        run: |
+          ./tests/theme-mock.ps1
+          ./tests/desktop-background-mock.ps1
+          ./tests/appearance-mock.ps1
