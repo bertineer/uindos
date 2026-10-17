@@ -20,6 +20,14 @@
 
 ## Under evaluation
 
+**ADR-025: Disable optional Edge browser background residency with policy.**
+Use exactly `StartupBoostEnabled=0` and `BackgroundModeEnabled=0` under the
+mandatory machine Edge policy key, with preview, installed-version gating,
+exact-state journals and guarded Undo. Preserve browser launch, WebView2,
+Edge Update and SmartScreen. Measure effective process behavior and physical
+memory separately from registry readback. No memory target justifies weakening
+security or emptying process working sets. See [guide](EDGE-BACKGROUND.md).
+
 - **ADR-TBD-009:** tiler selection and whether HyprWin should be patched upstream or replaced.
 - **ADR-TBD-010:** Ungoogled Chromium trusted distribution and update verification.
 - **ADR-TBD-011:** per-edition supported mechanisms for removing/blocking Copilot and other apps.

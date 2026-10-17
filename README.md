@@ -87,3 +87,11 @@ acknowledged Apply and policy-only Undo. Live Apply and unchanged repeat passed;
 the VM's pins went from ten to zero, confirmed by export and Start UI without
 sign-out. Persistence across a later sign-in remains pending. Original pin layout
 recovery is not guaranteed, particularly for pins whose apps are absent.
+
+### Edge background activity
+
+Preview `pwsh -NoProfile -File ./bin/uindos-edge-background.ps1` to disable
+browser Startup Boost and background mode through two journaled machine
+policies. Apply/Undo require temporary elevation. The [guide](docs/EDGE-BACKGROUND.md)
+describes exact rollback, version gates and resource-measurement limits.
+WebView2 and Edge Update remain available.

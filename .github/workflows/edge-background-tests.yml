@@ -1,0 +1,38 @@
+name: Edge background policy tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/EdgeBackground.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-edge-background.ps1'
+      - 'tests/edge-background-mock.ps1'
+      - 'tests/edge-background-windows-readonly.ps1'
+      - '.github/workflows/edge-background-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/EdgeBackground.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-edge-background.ps1'
+      - 'tests/edge-background-mock.ps1'
+      - 'tests/edge-background-windows-readonly.ps1'
+      - '.github/workflows/edge-background-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mock:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mock-only Edge policy transaction tests
+        shell: pwsh
+        run: ./tests/edge-background-mock.ps1
+      - name: Windows read-only adapter checks
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/edge-background-windows-readonly.ps1
