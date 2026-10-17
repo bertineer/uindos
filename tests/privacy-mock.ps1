@@ -41,8 +41,9 @@ $mock = @{
     Write = {
         param($Path,$Name,$Kind,$Value)
         Assert-UindosPrivacyTarget -Path $Path -Name $Name
-        if ($Kind -cne 'DWord' -or $Value -isnot [int]) { throw 'Mock write must be DWORD.' }
-        $script:state["$Path|$Name"] = [pscustomobject]@{ exists = $true; kind = $Kind; value = $Value }
+        if ($Kind -cne 'DWord') { throw 'Mock write must be DWORD.' }
+        $safeValue = ConvertTo-UindosPrivacyDword -Value $Value
+        $script:state["$Path|$Name"] = [pscustomobject]@{ exists = $true; kind = $Kind; value = $safeValue }
         $script:changes++
     }
     Remove = {
@@ -82,6 +83,26 @@ try {
     $retried = Invoke-UindosUndo -TransactionId $result.transactionId -Adapter $mock -JournalDirectory $dir
     Assert-Test ($retried.status -eq 'undone' -and $script:state.Count -eq 0) 'Recoverable conflict retry'
 
+    # Existing values need a Write during Undo, unlike originally absent ones.
+    # Exercise disk JSON reload, including both ends of the signed DWORD range.
+    foreach ($priorValue in @(7, [int]::MinValue, [int]::MaxValue, -1)) {
+        $script:state[$key] = [pscustomobject]@{ exists = $true; kind = 'DWord'; value = $priorValue }
+        $existing = Invoke-UindosApply -Actions $actions -Adapter $mock -JournalDirectory $dir -ConfirmChanges
+        $journal = Get-Content -LiteralPath (Join-Path $dir "$($existing.transactionId).json") -Raw | ConvertFrom-Json -Depth 20
+        Assert-Test ($journal.steps[0].prior.value -is [long]) 'Saved prior DWORD reloads as Int64'
+        $restored = Invoke-UindosUndo -TransactionId $existing.transactionId -Adapter $mock -JournalDirectory $dir
+        Assert-Test ($restored.status -eq 'undone' -and $restored.conflicts -eq 0) 'Existing DWORD Undo succeeds'
+        Assert-Test ($script:state[$key].value -is [int] -and $script:state[$key].value -eq $priorValue) 'Exact signed DWORD restored'
+        Assert-Test ($script:state.Count -eq 1) 'Other originally absent values removed'
+        $script:state.Clear()
+    }
+
+    foreach ($invalid in @([long]2147483648, [long]-2147483649, '1', 1.5, [decimal]1, $true, $null)) {
+        $rejected = $false
+        try { [void](ConvertTo-UindosPrivacyDword -Value $invalid) } catch { $rejected = $true }
+        Assert-Test $rejected 'Out-of-range or non-integer prior values rejected'
+    }
+
     $mutants = @(
         [pscustomobject]@{ id='privacy.tailored-experiences'; path=$actions[0].path; name=$actions[0].name; kind='DWord'; value=0 },
         [pscustomobject]@{ id='privacy.malicious'; path=$actions[0].path; name=$actions[0].name; kind='DWord'; value=1 },
@@ -94,8 +115,14 @@ try {
         Assert-Test $rejected 'Modified action denied'
     }
 
-    Write-Output 'PASS: curated privacy defaults, OS gate, dry run, idempotence, guarded undo and allowlist'
+    Write-Output 'PASS: curated privacy defaults, OS gate, dry run, idempotence, prior-DWORD JSON undo, guarded undo and allowlist'
 }
 finally {
-    if (Test-Path -LiteralPath $dir) { Remove-Item -LiteralPath $dir -Recurse -Force -ErrorAction SilentlyContinue }
+    $resolvedRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    $resolvedDir = [IO.Path]::GetFullPath($dir)
+    if ($resolvedDir.StartsWith($resolvedRoot, [StringComparison]::OrdinalIgnoreCase) -and
+        [IO.Path]::GetFileName($resolvedDir) -match '^uindos-privacy-mock-[0-9a-f]{32}$' -and
+        (Test-Path -LiteralPath $resolvedDir)) {
+        Remove-Item -LiteralPath $resolvedDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
