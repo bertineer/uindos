@@ -82,3 +82,19 @@ absolute persistent journal directory. Native Apply, unchanged repeat, exact
 prior-absence Undo and final reapply passed on Pro x64 26300.9711. The existing
 advertising-ID preference stayed unchanged. Effective Windows behavior and
 later sign-in persistence remain separate acceptance work.
+
+**Baseline optimization phase.** Target less than 2 GB used physical memory at
+controlled idle, with security, servicing and core functionality retained.
+No new software except Git/GitHub CLI until this baseline is optimized;
+PowerToys, Everything and other desktop provisioning remain deferred. Current
+active-session sampling exceeds the target and is not an idle benchmark.
+Use repeated physical-memory and CPU samples under the same conditions;
+never sum shared working sets or subtract assumed tooling overhead.
+
+**Edge background policies.** A [separate preview-first command](EDGE-BACKGROUND.md)
+manages only Startup Boost and browser background mode. Native two-policy
+Apply, unchanged repeat, exact prior-absence Undo and final reapply passed on
+Edge Stable 155 / Pro x64 26300.9711. Normal-user mutation guards passed;
+Defender AV/realtime/tamper remained enabled. Browser process exit, sign-in
+persistence and controlled-idle RAM benefit remain separate acceptance gates.
+No service-disable bundle, package deletion or replacement software is included.
