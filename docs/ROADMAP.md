@@ -24,6 +24,12 @@
 
 ## Decisions still to validate
 
+The [OneDrive file-storage policy](ONEDRIVE-POLICY.md) is a separate fixed
+machine setting with preview, exact-state journals and guarded Undo. Its
+documented scope is sync/storage integration, not permanent installation
+prevention. Legacy Edge migration values and unverified OneDrive discovery
+names are excluded; WebView2 and updater servicing remain preserved.
+
 - Tiling manager: HyprWin vs Komorebi vs GlazeWM; elevated execution and Defender exclusion are disqualifying until corrected.
 - Browser update channel for Ungoogled Chromium, security release lag and package provenance.
 - Windows 11 Pro constraints for policy-based telemetry controls and anti-reinstall controls.

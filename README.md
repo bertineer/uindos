@@ -20,6 +20,10 @@ See [curated consumer app removal](docs/DEBLOAT.md), [the first privacy defaults
 
 The [read-only OneDrive preflight](docs/ONEDRIVE-PREFLIGHT.md) reports registered Win32 install and limited current-user signals. It does not unlink or uninstall OneDrive and cannot establish sync completion, cloud backup completeness, or file hydration.
 
+The separate [OneDrive file-storage policy](docs/ONEDRIVE-POLICY.md) provides
+read-only preview and journaled Apply/Undo for the documented Pro sync restriction.
+It does not remove files or guarantee the client cannot be reinstalled.
+
 Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECTURE.md), [decision log](docs/DECISIONS.md), and [roadmap](docs/ROADMAP.md).
 
 ## Intended workflow (not yet implemented)

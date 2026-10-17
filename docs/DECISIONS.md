@@ -20,6 +20,14 @@
 
 ## Under evaluation
 
+**ADR-027: Separate OneDrive usage restriction from removal and reinstallation.**
+Use only the documented Pro `DisableFileSyncNGSC=1` machine policy in this
+module, with preview and exact policy-state Undo. It restricts file storage/sync;
+it is not an installer ban. Keep client uninstall, personal/cloud data handling
+and later servicing behavior separate. Do not add legacy Edge migration or
+unverified discovery values to claim permanent prevention. See
+[policy provenance](research/ONEDRIVE-POLICY.md).
+
 - **ADR-TBD-009:** tiler selection and whether HyprWin should be patched upstream or replaced.
 - **ADR-TBD-010:** Ungoogled Chromium trusted distribution and update verification.
 - **ADR-TBD-011:** per-edition supported mechanisms for removing/blocking Copilot and other apps.
