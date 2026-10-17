@@ -50,6 +50,16 @@ or restart processes automatically. See [research](research/SEARCH-SUGGESTIONS.m
 
 ## Proposed for validation — privacy and desktop hardening (2026-10-16)
 
+**ADR-024: Start reset and policy Undo have different recovery boundaries.**
+Use only the documented Configure Start Pins user policy, with an empty
+apply-once payload stored as the ADMX-defined REG_EXPAND_SZ and enabled last.
+Default to read-only preview, refuse existing/uncertain management authority,
+capture fresh private exports and exact policy prior state, and require informed
+layout-loss acknowledgment. UndoPolicy restores the two owned policy values;
+an export cannot promise exact original pins, especially for absent apps. Keep
+sign-in coordination and actual layout acceptance separate from registry
+verification. See [workflow](START-RESET.md) and [sources](research/START-RESET.md).
+
 **ADR-023: One curated per-user appearance.** Dark Windows/app color modes and
 a black desktop use the existing journaled engine with separate fixed targets.
 The desktop API preserves wallpaper/slideshow sources for undo; per-monitor
