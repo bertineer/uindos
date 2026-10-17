@@ -15,7 +15,8 @@
 [CmdletBinding(DefaultParameterSetName='Plan')]
 param(
     [Parameter(ParameterSetName='Apply',Mandatory)][switch]$Apply,
-    [Parameter(ParameterSetName='Undo',Mandatory)][string]$Undo
+    [Parameter(ParameterSetName='Undo',Mandatory)][string]$Undo,
+    [Parameter()][string]$JournalDirectory
 )
 
 $ErrorActionPreference = 'Stop'
@@ -23,20 +24,48 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\src\foundation\Privacy.ps1')
 
 try {
-    $adapter = New-UindosPrivacyAdapter
-    # Always store under the current user's LocalAppData. Never upload journals.
-    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
-        throw 'LOCALAPPDATA is unavailable. Refusing to store transaction journal.'
+    $journalOverride = $null
+    if ($PSBoundParameters.ContainsKey('JournalDirectory')) {
+        if ([string]::IsNullOrWhiteSpace($JournalDirectory) -or
+            -not [IO.Path]::IsPathFullyQualified($JournalDirectory)) {
+            throw 'JournalDirectory must be a valid absolute path.'
+        }
+        try { $journalOverride = [IO.Path]::GetFullPath($JournalDirectory) }
+        catch { throw 'JournalDirectory must be a valid absolute path.' }
+        if ((Test-Path -LiteralPath $journalOverride) -and
+            -not (Test-Path -LiteralPath $journalOverride -PathType Container)) {
+            throw 'JournalDirectory exists but is not a directory.'
+        }
     }
-    $journal = Join-Path $env:LOCALAPPDATA 'uindos\transactions\privacy-v1'
 
+    # Preview remains usable as the ordinary desktop user and never needs a
+    # journal location. Apply/Undo require temporary elevation in Explorer's
+    # same SID/session before the engine can create or read a journal.
     if ($PSCmdlet.ParameterSetName -eq 'Undo') {
+        Assert-UindosPrivacyContext
+        $adapter = New-UindosPrivacyAdapter
+        if ($null -ne $journalOverride) { $journal = $journalOverride }
+        else {
+            if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+                throw 'LOCALAPPDATA is unavailable. Refusing to store transaction journal.'
+            }
+            $journal = Join-Path $env:LOCALAPPDATA 'uindos\transactions\privacy-v1'
+        }
         $response = Invoke-UindosUndo -TransactionId $Undo -Adapter $adapter -JournalDirectory $journal
     }
     else {
+        if ($PSCmdlet.ParameterSetName -eq 'Apply') { Assert-UindosPrivacyContext }
+        $adapter = New-UindosPrivacyAdapter
         # Explicitly fail rather than attempting unsupported Windows editions.
         $actions = @(Get-UindosPrivacyActions)
         if ($PSCmdlet.ParameterSetName -eq 'Apply') {
+            if ($null -ne $journalOverride) { $journal = $journalOverride }
+            else {
+                if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+                    throw 'LOCALAPPDATA is unavailable. Refusing to store transaction journal.'
+                }
+                $journal = Join-Path $env:LOCALAPPDATA 'uindos\transactions\privacy-v1'
+            }
             $response = Invoke-UindosApply -Actions $actions -Adapter $adapter -JournalDirectory $journal -ConfirmChanges
         }
         else {

@@ -100,6 +100,90 @@ function ConvertTo-UindosPrivacyDword {
     return [int]$Value
 }
 
+function Assert-UindosPrivacyContextObservations {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)]$Context)
+
+    # This helper accepts only collected observations so the fail-closed policy
+    # can be tested without Windows or registry access.
+    if ($Context.elevated -isnot [bool]) {
+        throw 'Privacy Apply/Undo elevation state is unknown; refusing to continue.'
+    }
+    if (-not $Context.elevated) {
+        throw 'Run privacy Apply/Undo from a temporarily elevated PowerShell in the desktop user session; no elevation was attempted.'
+    }
+    if (($Context.sessionId -isnot [int] -and $Context.sessionId -isnot [long]) -or
+        $Context.sessionId -lt 0 -or $Context.currentSid -isnot [string] -or
+        [string]::IsNullOrWhiteSpace($Context.currentSid)) {
+        throw 'Privacy desktop identity or session is unknown; refusing to continue.'
+    }
+
+    $explorers = @($Context.explorerProcesses)
+    $sameSession = @($explorers | Where-Object {
+        ($_.sessionId -is [int] -or $_.sessionId -is [long]) -and
+        $_.sessionId -eq $Context.sessionId
+    })
+    if ($sameSession.Count -eq 0) {
+        throw 'Privacy Apply/Undo requires Explorer in the current session; no matching process was found.'
+    }
+
+    $matchingOwner = $false
+    foreach ($process in $sameSession) {
+        if (($process.returnValue -isnot [int] -and $process.returnValue -isnot [long]) -or
+            $process.returnValue -ne 0 -or $process.sid -isnot [string] -or
+            [string]::IsNullOrWhiteSpace($process.sid)) {
+            throw 'Explorer owner probe failed or returned unknown data; refusing to continue.'
+        }
+        if ($process.sid -ceq $Context.currentSid) { $matchingOwner = $true }
+    }
+    if (-not $matchingOwner) {
+        throw 'Privacy Apply/Undo requires an elevated process for the same user and session as Explorer.'
+    }
+}
+
+function Assert-UindosPrivacyContext {
+    [CmdletBinding()]
+    param([AllowNull()]$Context)
+
+    if (-not $PSBoundParameters.ContainsKey('Context')) {
+        if (-not [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+            [Runtime.InteropServices.OSPlatform]::Windows)) {
+            throw [System.NotSupportedException]::new('Privacy changes require a Windows desktop session.')
+        }
+        try {
+            $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+            $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+            $sessionId = (Get-Process -Id $PID -ErrorAction Stop).SessionId
+            $explorerProcesses = @()
+            foreach ($process in @(Get-CimInstance Win32_Process -Filter "Name='explorer.exe'" -ErrorAction Stop)) {
+                if ($null -eq $process.SessionId) {
+                    throw 'Explorer session probe returned no session ID.'
+                }
+                if ([long]$process.SessionId -ne [long]$sessionId) { continue }
+                $owner = Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid -ErrorAction Stop
+                if ($null -eq $owner -or $null -eq $owner.ReturnValue) {
+                    throw 'Explorer owner probe returned no status.'
+                }
+                $explorerProcesses += [pscustomobject]@{
+                    sessionId = [long]$process.SessionId
+                    returnValue = [long]$owner.ReturnValue
+                    sid = if ($owner.ReturnValue -eq 0) { [string]$owner.Sid } else { $null }
+                }
+            }
+            $Context = [pscustomobject]@{
+                elevated = [bool]$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+                sessionId = [long]$sessionId
+                currentSid = [string]$identity.User.Value
+                explorerProcesses = @($explorerProcesses)
+            }
+        }
+        catch {
+            throw "Privacy desktop context probe failed; refusing to continue. $($_.Exception.Message)"
+        }
+    }
+    Assert-UindosPrivacyContextObservations -Context $Context
+}
+
 function New-UindosPrivacyAdapter {
     if (-not [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
         [Runtime.InteropServices.OSPlatform]::Windows)) {

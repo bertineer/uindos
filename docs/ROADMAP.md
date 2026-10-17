@@ -74,3 +74,11 @@ same-session Start Pinned surface was empty, All apps remained visible, and
 local Start and Explorer filename search worked. Later sign-in persistence,
 live policy Undo and subsequent pin customization remain pending. Exact
 original-layout reconstruction is not promised for absent-package pins.
+
+**Privacy policy writer corrected.** The existing three-value
+[privacy command](PRIVACY.md) keeps normal-user preview but requires temporary
+elevation as the same Explorer user/session for Apply/Undo, with an optional
+absolute persistent journal directory. Native Apply, unchanged repeat, exact
+prior-absence Undo and final reapply passed on Pro x64 26300.9711. The existing
+advertising-ID preference stayed unchanged. Effective Windows behavior and
+later sign-in persistence remain separate acceptance work.
