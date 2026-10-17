@@ -1,0 +1,34 @@
+name: Search suggestions tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/SearchSuggestions.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-search-suggestions.ps1'
+      - 'tests/search-suggestions-*.ps1'
+      - '.github/workflows/search-suggestions-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/SearchSuggestions.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'bin/uindos-search-suggestions.ps1'
+      - 'tests/search-suggestions-*.ps1'
+      - '.github/workflows/search-suggestions-tests.yml'
+permissions:
+  contents: read
+jobs:
+  search-suggestions:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-platform transaction and allowlist tests
+        shell: pwsh
+        run: ./tests/search-suggestions-mock.ps1
+      - name: Windows read-only adapter checks
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/search-suggestions-windows-readonly.ps1

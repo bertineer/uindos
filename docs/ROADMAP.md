@@ -48,3 +48,8 @@ Preview, exact managed-state undo, idempotence and failure/drift handling are
 tested separately from native shell/UI behavior. OneDrive removal still needs
 the informed data/sync review; Edge browser removal remains separate and must
 preserve WebView2 and its servicing.
+
+**Search suggestions candidate.** A [single journaled user policy](SEARCH-SUGGESTIONS.md)
+has passed VM Apply/repeat/Undo and Start/web-versus-local Search observations
+after a manual Search flyout refresh. Reboot persistence remains pending. Pins,
+package removals, indexing replacements and service tuning remain separate.
