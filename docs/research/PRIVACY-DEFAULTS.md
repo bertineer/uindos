@@ -33,6 +33,37 @@ The per-user `HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo\Ena
 | Update resilience | Install a normal cumulative update and re-run read-only preview | No Windows Update regression; explicit detection of drift |
 | Reboot/sign out | Re-run preview, observe user UI | No false policy persistence guarantee |
 
+## Prior-DWORD journal restoration — 2026-10-17
+
+PowerShell 7.6.7 on the Windows 11 Pro build 26300.9711 VM reproduces
+`('{"value":7}' | ConvertFrom-Json).value` as `System.Int64`. The original
+Privacy Write guard accepted only `System.Int32`, so Undo of a previously
+existing DWORD failed while Undo of an originally absent value succeeded.
+See the official [ConvertFrom-Json reference](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertfrom-json?view=powershell-7.6);
+the numeric runtime type here is an observed result, not a promised cross-version
+JSON contract.
+
+The [RegistryKey.GetValue API](https://learn.microsoft.com/en-us/dotnet/api/microsoft.win32.registrykey.getvalue)
+and [pinned .NET implementation](https://github.com/dotnet/runtime/blob/d099f075e45d2aa6007a22b71b45a08758559f80/src/libraries/Microsoft.Win32.Registry/src/Microsoft/Win32/RegistryKey.Windows.cs)
+provide the registry representation context: DWORD data is read as a signed
+32-bit integer. This source is explanatory, not proof that the VM runs that
+exact .NET revision. The adapter already captures DWORDs as `[int]`; restoring
+the signed range preserves every prior DWORD bit without allowing QWORD data.
+
+The fix accepts only Int32 or Int64 within signed Int32 bounds, then passes an
+Int32 to the DWORD provider write. The fixed three desired defaults and target
+allowlist are unchanged. It requires no elevation, service modification or
+journal migration. Existing private journals remain compatible; guarded Undo
+still refuses external drift.
+
+Regression coverage: saved/reloaded prior values 7, -1, Int32.MinValue and
+Int32.MaxValue restore exactly through the transaction engine; invalid types
+and out-of-range values are rejected. Real-adapter tests intercept the registry
+provider boundary and confirm Int32 reaches it. Mock/privacy Windows read-only
+and transaction suites passed locally. No live privacy Apply/Undo ran for this
+fix; effective policy, Group Policy precedence and reboot acceptance remain
+separate VM work.
+
 ## Security constraints for future expansions
 
 Do not broaden the production adapter through a generic path prefix or by allowing arbitrary `HKCU` writes. Any new rule needs an explicit ID/path/name/type/value allowlist and separate acceptance tests. Store journals under the current user's profile and never upload them. No broad download, stop service, or shell exec capability is introduced.

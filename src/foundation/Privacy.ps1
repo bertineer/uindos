@@ -89,6 +89,17 @@ function Get-UindosPrivacyActions {
     return @(Get-UindosPrivacyRuleCatalog)
 }
 
+function ConvertTo-UindosPrivacyDword {
+    param([Parameter(Mandatory)]$Value)
+    # Registry reads use signed Int32, but JSON journals reload integers as
+    # Int64. Preserve all 32 bits of prior DWORDs without coercing other types.
+    if (($Value -isnot [int] -and $Value -isnot [long]) -or
+        $Value -lt [int]::MinValue -or $Value -gt [int]::MaxValue) {
+        throw [System.NotSupportedException]::new('Privacy value must be an integer in the signed DWORD range.')
+    }
+    return [int]$Value
+}
+
 function New-UindosPrivacyAdapter {
     if (-not [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
         [Runtime.InteropServices.OSPlatform]::Windows)) {
@@ -116,13 +127,14 @@ function New-UindosPrivacyAdapter {
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
             Assert-UindosPrivacyTarget -Path $Path -Name $Name
-            if ($Kind -cne 'DWord' -or $Value -isnot [int]) {
+            if ($Kind -cne 'DWord') {
                 throw 'Privacy adapter only writes DWORD integer values.'
             }
+            $safeValue = ConvertTo-UindosPrivacyDword -Value $Value
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
                 New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
             }
-            New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType DWord -Value $Value -Force -ErrorAction Stop | Out-Null
+            New-ItemProperty -LiteralPath $Path -Name $Name -PropertyType DWord -Value $safeValue -Force -ErrorAction Stop | Out-Null
         }
         Remove = {
             param([string]$Path, [string]$Name)

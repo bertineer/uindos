@@ -49,6 +49,12 @@ The tool:
 
 Registry readback only verifies registry state—not whether all Windows experiences honor the change. Test on a disposable Windows 11 Pro VM before running on a primary machine.
 
+Undo accepts saved DWORD integers after JSON journal reload, which produces
+`Int64` values on the tested PowerShell 7.6.7 runtime. The adapter validates the
+signed 32-bit range before converting back to `Int32`, preserving the original
+DWORD bits, including high-bit values. Strings, fractional numbers, booleans
+and out-of-range integers are rejected before a registry write.
+
 ## Security boundaries
 
 The adapter cannot write HKLM, disable Windows Update or Defender, remove Edge/WebView2, alter firewall rules, touch BitLocker, remove AppX packages or change other users' profiles. No service, scheduled task, remote download or permanent elevated process is created.
@@ -60,6 +66,13 @@ Only the current-user advertising-ID **preference** is changed, not a machine-le
 `pwsh -NoProfile -File ./tests/privacy-mock.ps1` runs Windows-agnostic tests with an in-memory adapter; no registry changes.
 
 `pwsh -NoProfile -File ./tests/privacy-windows-readonly.ps1` checks Windows registry reads and rejects unauthorized write targets; it **does not modify** the three production privacy settings. GitHub CI runs both.
+
+The mock suite covers existing DWORD Undo through a saved/reloaded journal,
+including both signed 32-bit limits. The Windows suite also invokes the real
+Write delegate with registry provider calls intercepted to verify normalization
+and rejection without changing registry state. These tests passed on the
+Windows 11 Pro build 26300.9711 VM with PowerShell 7.6.7; live privacy
+Apply/Undo and effective policy behavior remain pending.
 
 A dedicated Windows 11 Pro VM must still validate effective behavior, apply/undo, Group Policy precedence, current-user scope, and Settings UI observability. Details: [research/PRIVACY-DEFAULTS.md](research/PRIVACY-DEFAULTS.md).
 
