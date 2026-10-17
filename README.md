@@ -50,6 +50,14 @@ Read [the project philosophy](docs/PHILOSOPHY.md), [architecture](docs/ARCHITECT
 
 ## Scope
 
+uindos targets a **fresh Windows 11 Pro installation**, before personal data,
+cloud-sync accounts and daily-use software are introduced. Its opinionated
+defaults are not a general cleanup recipe for an existing daily-use machine.
+The future combined runner will warn about this prerequisite and the effects
+of app removal, settings/layout resets and potential data loss before changes;
+that runner and warning are not implemented yet. See ADR-026 in the
+[decision log](docs/DECISIONS.md).
+
 uindos is personal software, shared publicly for others to use or adapt. It is not an enterprise hardening baseline, a custom Windows OS image, a commercial offering, a generic package manager, or a promise of zero Microsoft traffic. Unsupported Windows component removal is treated as a compatibility risk, never a hidden default.
 
 Development happens through small, reviewable pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md).
@@ -91,3 +99,11 @@ acknowledged Apply and policy-only Undo. Live Apply and unchanged repeat passed;
 the VM's pins went from ten to zero, confirmed by export and Start UI without
 sign-out. Persistence across a later sign-in remains pending. Original pin layout
 recovery is not guaranteed, particularly for pins whose apps are absent.
+
+### Edge background activity
+
+Preview `pwsh -NoProfile -File ./bin/uindos-edge-background.ps1` to disable
+browser Startup Boost and background mode through two journaled machine
+policies. Apply/Undo require temporary elevation. The [guide](docs/EDGE-BACKGROUND.md)
+describes exact rollback, version gates and resource-measurement limits.
+WebView2 and Edge Update remain available.

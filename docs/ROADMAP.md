@@ -24,11 +24,13 @@
 
 ## Decisions still to validate
 
-The [OneDrive file-storage policy](ONEDRIVE-POLICY.md) is a separate fixed
-machine setting with preview, exact-state journals and guarded Undo. Its
-documented scope is sync/storage integration, not permanent installation
-prevention. Legacy Edge migration values and unverified OneDrive discovery
-names are excluded; WebView2 and updater servicing remain preserved.
+The [2026-10-17 client-removal validation](research/CLIENT-UNINSTALL-2026-10-17.md)
+records successful current-user OneDrive client removal, retained local
+folders/recovery installers, and an Edge force-uninstall attempt refused by
+the native installer with exit93. Edge remains installed; WebView2/updater
+component checks passed. Neither result establishes controlled-idle RAM or
+complete privacy acceptance. A generic destructive removal command remains
+out of scope for this evidence update.
 
 - Tiling manager: HyprWin vs Komorebi vs GlazeWM; elevated execution and Defender exclusion are disqualifying until corrected.
 - Browser update channel for Ungoogled Chromium, security release lag and package provenance.
@@ -88,3 +90,19 @@ absolute persistent journal directory. Native Apply, unchanged repeat, exact
 prior-absence Undo and final reapply passed on Pro x64 26300.9711. The existing
 advertising-ID preference stayed unchanged. Effective Windows behavior and
 later sign-in persistence remain separate acceptance work.
+
+**Baseline optimization phase.** Target less than 2 GB used physical memory at
+controlled idle, with security, servicing and core functionality retained.
+No new software except Git/GitHub CLI until this baseline is optimized;
+PowerToys, Everything and other desktop provisioning remain deferred. Current
+active-session sampling exceeds the target and is not an idle benchmark.
+Use repeated physical-memory and CPU samples under the same conditions;
+never sum shared working sets or subtract assumed tooling overhead.
+
+**Edge background policies.** A [separate preview-first command](EDGE-BACKGROUND.md)
+manages only Startup Boost and browser background mode. Native two-policy
+Apply, unchanged repeat, exact prior-absence Undo and final reapply passed on
+Edge Stable 155 / Pro x64 26300.9711. Normal-user mutation guards passed;
+Defender AV/realtime/tamper remained enabled. Browser process exit, sign-in
+persistence and controlled-idle RAM benefit remain separate acceptance gates.
+No service-disable bundle, package deletion or replacement software is included.
