@@ -81,3 +81,8 @@ The [read-only Start pin preflight](docs/START-PINS-PREFLIGHT.md) counts current
 pins and checks the two known WhatsApp/LinkedIn identities against current-user
 package registration. It can retain a private layout export for later review;
 it does not reset pins or uninstall apps.
+
+The separate [one-time Start reset](docs/START-RESET.md) now provides preview,
+acknowledged Apply and policy-only Undo. Native preview and mocked transactions
+pass; actual reset/sign-in acceptance remains pending. Original pin layout
+recovery is not guaranteed, particularly for pins whose apps are absent.

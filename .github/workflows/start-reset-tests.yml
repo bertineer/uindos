@@ -1,0 +1,27 @@
+name: Start reset tests
+on:
+  push:
+    branches: [main]
+    paths: ['src/core/**', 'src/foundation/StartReset*.ps1', 'src/foundation/*StartPins*.ps1', 'bin/uindos-start-reset.ps1', 'tests/start-reset*.ps1', '.github/workflows/start-reset-tests.yml']
+  pull_request:
+    paths: ['src/core/**', 'src/foundation/StartReset*.ps1', 'src/foundation/*StartPins*.ps1', 'bin/uindos-start-reset.ps1', 'tests/start-reset*.ps1', '.github/workflows/start-reset-tests.yml']
+permissions:
+  contents: read
+jobs:
+  start-reset:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fixed policy and authority guard mocks
+        shell: pwsh
+        run: ./tests/start-reset-mock.ps1
+      - name: Private operation workflow mocks
+        shell: pwsh
+        run: ./tests/start-reset-workflow-mock.ps1
+      - name: Native read-only adapter checks
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/start-reset-windows-readonly.ps1

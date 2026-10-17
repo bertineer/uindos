@@ -74,7 +74,10 @@ function Get-UindosStartPinsPreflight {
     [CmdletBinding()]
     param(
         [Parameter()][object]$OsInfo,
-        [Parameter()][string]$PrivateExportDirectory
+        [Parameter()][string]$PrivateExportDirectory,
+        # Internal reuse by the elevated, same-desktop-user Start policy workflow.
+        # The public inventory CLI does not expose or pass this switch.
+        [switch]$AllowElevatedPolicyPreflight
     )
 
     $windows = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Runtime.InteropServices.OSPlatform]::Windows)
@@ -122,6 +125,7 @@ function Get-UindosStartPinsPreflight {
     $completed = $false
     try {
         $arguments = @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',('"{0}"' -f $helperPath),'-ArtifactDirectory',('"{0}"' -f $artifactDirectory))
+        if ($AllowElevatedPolicyPreflight) { $arguments += '-AllowElevatedPolicyPreflight' }
         $process = Start-Process -FilePath $powershell -ArgumentList $arguments -PassThru -WindowStyle Hidden
         if (-not $process.WaitForExit(30000)) {
             $process.Kill()
@@ -136,7 +140,7 @@ function Get-UindosStartPinsPreflight {
         $familiesDocument = Get-Content -LiteralPath $familiesPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
         if ($null -eq $familiesDocument -or $null -eq $familiesDocument.packageFamilies -or
             $familiesDocument.packageFamilies -isnot [array] -or $null -eq $familiesDocument.context -or
-            $familiesDocument.context.elevated -isnot [bool] -or $familiesDocument.context.elevated -ne $false -or
+            $familiesDocument.context.elevated -isnot [bool] -or ($familiesDocument.context.elevated -and -not $AllowElevatedPolicyPreflight) -or
             $familiesDocument.context.sameUserAsExplorer -isnot [bool] -or $familiesDocument.context.sameUserAsExplorer -ne $true) {
             throw [IO.InvalidDataException]::new('Current-user package family evidence is malformed.')
         }
@@ -146,7 +150,7 @@ function Get-UindosStartPinsPreflight {
             edition = [string]$OsInfo.editionId; build = $build; architecture = [string]$OsInfo.architecture
         })
         $report | Add-Member -NotePropertyName collectorContext -NotePropertyValue ([pscustomobject]@{
-            elevated = $false; sameUserAsExplorer = $true
+            elevated = [bool]$familiesDocument.context.elevated; sameUserAsExplorer = $true
         })
         $completed = $true
         [pscustomobject]@{

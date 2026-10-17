@@ -1,5 +1,6 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$ArtifactDirectory)
+param([Parameter(Mandatory)][string]$ArtifactDirectory,
+      [switch]$AllowElevatedPolicyPreflight)
 $ErrorActionPreference = 'Stop'
 try {
     $artifactDirectory = [IO.Path]::GetFullPath($ArtifactDirectory)
@@ -12,7 +13,8 @@ try {
     }
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]::new($identity)
-    if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Collector must run without elevation.' }
+    $elevated = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if ($elevated -and -not $AllowElevatedPolicyPreflight) { throw 'Collector must run without elevation.' }
 
     $explorer = @(Get-CimInstance -ClassName Win32_Process -Filter "Name='explorer.exe'" -ErrorAction Stop)
     $sameSession = @($explorer | Where-Object { $_.SessionId -eq (Get-Process -Id $PID).SessionId })
@@ -29,7 +31,7 @@ try {
     $families = @(Get-AppxPackage -ErrorAction Stop | ForEach-Object { [string]$_.PackageFamilyName } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique)
     $payload = [pscustomobject]@{
         packageFamilies = [string[]]$families
-        context = [pscustomobject]@{ elevated = $false; sameUserAsExplorer = $true }
+        context = [pscustomobject]@{ elevated = [bool]$elevated; sameUserAsExplorer = $true }
     } | ConvertTo-Json -Depth 4
     [IO.File]::WriteAllText($familiesPath,$payload,[System.Text.UTF8Encoding]::new($false))
     exit 0

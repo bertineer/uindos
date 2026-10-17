@@ -62,5 +62,11 @@ Taskbar cleanup needs separate handling for user-created pins.
 **Start policy prerequisite.** The transaction core can now capture and restore
 literal `REG_EXPAND_SZ` data without expanding environment variables. Isolated
 registry Apply/repeat/Undo and affected module regressions passed. This enables
-the correct type for Start policy JSON; the layout reset and its recovery
-contract remain separate implementation and sign-in acceptance work.
+the correct type for Start policy JSON.
+
+**Start reset candidate.** The [one-time reset command](START-RESET.md) implements
+preview, explicitly acknowledged Apply and policy-only Undo with a fresh private
+layout backup and conservative authority checks. Mocked transactions and native
+normal/elevated read-only previews pass. Actual policy application, coordinated
+sign-in, empty-layout observation and subsequent pin customization remain pending.
+Exact original-layout reconstruction is not promised for absent-package pins.
