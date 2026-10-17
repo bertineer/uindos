@@ -149,3 +149,7 @@ finally {
         Remove-Item -LiteralPath $resolvedTempRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
+
+# The final negative CLI case intentionally sets LASTEXITCODE to 1. GitHub's
+# pwsh -command wrapper propagates it unless the successful suite exits itself.
+exit 0
