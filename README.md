@@ -111,3 +111,12 @@ browser Startup Boost and background mode through two journaled machine
 policies. Apply/Undo require temporary elevation. The [guide](docs/EDGE-BACKGROUND.md)
 describes exact rollback, version gates and resource-measurement limits.
 WebView2 and Edge Update remain available.
+
+### Cross-device continuation
+
+Preview `pwsh -NoProfile -File ./bin/uindos-shared-experiences.ps1` for the
+single journaled machine `EnableCdp=0` policy. Apply/Undo need temporary
+elevation. It disables cross-device continuation after reboot and prevents
+Windows settings backup. The [guide](docs/SHARED-EXPERIENCES.md) explains
+authority checks, exact recovery and pending behavior acceptance. Services
+remain unchanged; RAM savings are not established.

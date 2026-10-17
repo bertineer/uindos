@@ -34,6 +34,14 @@ not implemented by this documentation change.
 
 ## Under evaluation
 
+**ADR-028: Disable cross-device continuation with the documented EnableCDP policy.**
+Use only machine EnableCdp DWORD0, bounded authority checks and exact-state
+journals. Accept the documented loss of Windows settings backup as part of
+this fresh-install privacy baseline. Keep service-disable CSPs, Phone Link and
+CrossDeviceResume controls separate. Coordinate reboot and measure behavior
+and memory independently; registry success is not service or RAM evidence.
+See [guide](SHARED-EXPERIENCES.md) and [research](research/SHARED-EXPERIENCES.md).
+
 **ADR-025: Disable optional Edge browser background residency with policy.**
 Use exactly `StartupBoostEnabled=0` and `BackgroundModeEnabled=0` under the
 mandatory machine Edge policy key, with preview, installed-version gating,

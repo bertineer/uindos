@@ -1,0 +1,32 @@
+name: Shared experiences policy tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/SharedExperiences.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'src/core/RegistryAdapter.ps1'
+      - 'bin/uindos-shared-experiences.ps1'
+      - 'tests/shared-experiences-mock.ps1'
+      - '.github/workflows/shared-experiences-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/SharedExperiences.ps1'
+      - 'src/core/Transactions.ps1'
+      - 'src/core/RegistryAdapter.ps1'
+      - 'bin/uindos-shared-experiences.ps1'
+      - 'tests/shared-experiences-mock.ps1'
+      - '.github/workflows/shared-experiences-tests.yml'
+permissions:
+  contents: read
+jobs:
+  shared-experiences-policy:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-platform mocked shared-experiences policy tests
+        shell: pwsh
+        run: ./tests/shared-experiences-mock.ps1

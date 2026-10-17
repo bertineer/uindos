@@ -112,3 +112,8 @@ Edge Stable 155 / Pro x64 26300.9711. Normal-user mutation guards passed;
 Defender AV/realtime/tamper remained enabled. Browser process exit, sign-in
 persistence and controlled-idle RAM benefit remain separate acceptance gates.
 No service-disable bundle, package deletion or replacement software is included.
+
+**Cross-device continuation policy.** The [single-value command](SHARED-EXPERIENCES.md)
+sets EnableCdp DWORD0 with authority guards and exact-state Undo. This privacy
+choice also prevents Windows settings backup. Reboot/paired-device acceptance
+and controlled-idle memory remain separate gates; no CDP service is disabled.
