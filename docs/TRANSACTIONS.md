@@ -42,7 +42,23 @@ $result = Invoke-UindosApply -Actions $actions -Adapter $adapter -JournalDirecto
 Invoke-UindosUndo -TransactionId $result.transactionId -Adapter $adapter -JournalDirectory $journal
 ~~~
 
-M3 supports only \`String\`, \`DWord\` (nonnegative signed 32-bit range) and \`QWord\` (nonnegative signed 64-bit range). Values with other registry types are rejected **before** modification, rather than backed up incorrectly. The engine preserves existence, type and value; if uindos created an otherwise absent registry key, undo currently deletes the **value** but does not remove that empty key.
+The original M3 prototype supported only \`String\`, \`DWord\` (nonnegative signed 32-bit range) and \`QWord\` (nonnegative signed 64-bit range). Types outside the current allowlist are rejected **before** modification, rather than backed up incorrectly. The engine preserves existence, type and value; if uindos created an otherwise absent registry key, undo currently deletes the **value** but does not remove that empty key.
+
+## Expandable strings
+
+The current engine also supports `ExpandString` (`REG_EXPAND_SZ`) as a
+distinct string type. The sandbox adapter reads its literal stored text with
+`DoNotExpandEnvironmentNames`; it does not substitute process environment
+variables while capturing, comparing or restoring state. A saved
+`%USERPROFILE%\before` remains that literal text through JSON reload and Undo,
+even if the process environment later changes. Changing the kind to ordinary
+`String` with identical text still counts as drift.
+
+Both string kinds require actual string data. Binary and MultiString values
+remain unsupported. The sandbox path restriction and each production
+adapter's fixed target/type allowlist still apply. This type support alone
+does not authorize or apply a Start layout policy. See [source context and
+tests](research/REGISTRY-EXPAND-STRING.md).
 
 ## Transaction data and privacy
 

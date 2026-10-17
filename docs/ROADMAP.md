@@ -58,3 +58,9 @@ package removals, indexing replacements and service tuning remain separate.
 separate pinned WhatsApp/LinkedIn entries from installed packages. Current pin
 state and reset/restore limitations must be reviewed before layout changes.
 Taskbar cleanup needs separate handling for user-created pins.
+
+**Start policy prerequisite.** The transaction core can now capture and restore
+literal `REG_EXPAND_SZ` data without expanding environment variables. Isolated
+registry Apply/repeat/Undo and affected module regressions passed. This enables
+the correct type for Start policy JSON; the layout reset and its recovery
+contract remain separate implementation and sign-in acceptance work.

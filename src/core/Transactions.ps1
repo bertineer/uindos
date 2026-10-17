@@ -32,11 +32,11 @@ function ConvertTo-UindosAction {
         # Backward compatible sandbox-only behavior for test adapters.
         Assert-UindosSandboxRegistryPath -Path $path
     }
-    if ($kind -cnotin @('String', 'DWord', 'QWord')) { throw 'Invalid action registry kind.' }
+    if ($kind -cnotin @('String', 'ExpandString', 'DWord', 'QWord')) { throw 'Invalid action registry kind.' }
 
     $value = $Action.value
     if ($null -eq $value) { throw 'Null desired value is not supported.' }
-    if ($kind -eq 'String') {
+    if ($kind -in @('String', 'ExpandString')) {
         if ($value -isnot [string]) { throw 'String registry kind requires a string value.' }
     }
     else {
@@ -74,8 +74,11 @@ function Get-UindosPlan {
         if (-not $targets.Add("$($a.path)|$($a.name)")) { throw 'Duplicate registry target.' }
         $prior = & $Adapter.Read $a.path $a.name
         if ($null -eq $prior) { throw 'Read operation returned no state.' }
-        if ($prior.exists -and $prior.kind -notin @('String','DWord','QWord')) {
+        if ($prior.exists -and $prior.kind -notin @('String','ExpandString','DWord','QWord')) {
             throw 'Cannot capture unsupported prior registry type.'
+        }
+        if ($prior.exists -and $prior.kind -in @('String','ExpandString') -and $prior.value -isnot [string]) {
+            throw 'Cannot capture malformed prior string registry value.'
         }
         $desired = [pscustomobject]@{ exists = $true; kind = $a.kind; value = $a.value }
         $change = -not (Test-UindosStateEqual -Left $prior -Right $desired)
@@ -123,6 +126,9 @@ function Enter-UindosJournalLock {
 function Set-UindosState {
     param([hashtable]$Adapter, $Action, $State)
     if ($State.exists) {
+        if ($State.kind -in @('String', 'ExpandString') -and $State.value -isnot [string]) {
+            throw 'String registry kinds require an actual string value.'
+        }
         & $Adapter.Write $Action.path $Action.name $State.kind $State.value
     }
     else {

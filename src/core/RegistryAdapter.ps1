@@ -18,24 +18,32 @@ function New-UindosRegistryAdapter {
                 return [pscustomobject]@{ exists = $false; kind = $null; value = $null }
             }
             $key = Get-Item -LiteralPath $Path -ErrorAction Stop
-            if (@($key.GetValueNames()) -cnotcontains $Name) {
-                return [pscustomobject]@{ exists = $false; kind = $null; value = $null }
+            try {
+                if (@($key.GetValueNames()) -cnotcontains $Name) {
+                    return [pscustomobject]@{ exists = $false; kind = $null; value = $null }
+                }
+                $kind = $key.GetValueKind($Name).ToString()
+                if ($kind -notin @('String', 'ExpandString', 'DWord', 'QWord')) {
+                    throw [System.NotSupportedException]::new('Registry value type is outside the M3 allowlist.')
+                }
+                return [pscustomobject]@{
+                    exists = $true
+                    kind = $kind
+                    value = $key.GetValue($Name, $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+                }
             }
-            $kind = $key.GetValueKind($Name).ToString()
-            if ($kind -notin @('String', 'DWord', 'QWord')) {
-                throw [System.NotSupportedException]::new('Registry value type is outside the M3 allowlist.')
-            }
-            return [pscustomobject]@{
-                exists = $true
-                kind = $kind
-                value = $key.GetValue($Name, $null)
+            finally {
+                $key.Dispose()
             }
         }
         Write = {
             param([string]$Path, [string]$Name, [string]$Kind, $Value)
             Assert-UindosSandboxRegistryPath -Path $Path
-            if ($Kind -notin @('String', 'DWord', 'QWord')) {
+            if ($Kind -notin @('String', 'ExpandString', 'DWord', 'QWord')) {
                 throw 'Unsupported registry kind.'
+            }
+            if ($Kind -in @('String', 'ExpandString') -and $Value -isnot [string]) {
+                throw 'String registry kinds require an actual string value.'
             }
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
                 New-Item -Path $Path -Force -ErrorAction Stop | Out-Null
@@ -47,7 +55,13 @@ function New-UindosRegistryAdapter {
             Assert-UindosSandboxRegistryPath -Path $Path
             if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) { return }
             $key = Get-Item -LiteralPath $Path -ErrorAction Stop
-            if (@($key.GetValueNames()) -ccontains $Name) {
+            try {
+                $exists = @($key.GetValueNames()) -ccontains $Name
+            }
+            finally {
+                $key.Dispose()
+            }
+            if ($exists) {
                 Remove-ItemProperty -LiteralPath $Path -Name $Name -ErrorAction Stop
             }
         }
