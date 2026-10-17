@@ -28,6 +28,16 @@
 
 Update this file when a proposal has been researched and tested; do not silently promote a proposal to an accepted requirement.
 
+**ADR-024: One reversible user search-suggestions policy.** Set only the Pro
+`DisableSearchBoxSuggestions` policy through a preview-first command with exact
+state journals. Its documented contract concerns File Explorer search history;
+Start web-result suppression was observed on build 26300.9711 after manually
+refreshing the current user's Search flyout, and remains a tested build-specific
+outcome. The policy writer requires temporary elevation for the same Explorer
+user/session; ordinary desktop processes stay non-elevated. Preserve local
+Search, indexing and Explorer. Do not add unsupported Pro web-results policies
+or restart processes automatically. See [research](research/SEARCH-SUGGESTIONS.md).
+
 **ADR-014: Privacy v1 is deliberately per-user and narrowly allowlisted (PR #5).** On Windows 11 Pro/Pro N, initially apply user-tailored-experiences and third-party suggestions Group Policy values, plus the per-user advertising-ID preference as best-effort. Do not claim machine-wide policy enforcement, diagnostic-data-off, or that personalized ads are completely removed. Keep these changes undoable and independent of Windows Update, Defender and Edge removal.
 
 **ADR-015: Curated AppX removal is not a reversible registry action (PR #6).** The first consumer-app stage handles only five exact Microsoft-signed package identities in the current Windows 11 Pro user context. Preview is read-only; uninstall requires two explicit switches, logs exact package identity and partial outcomes, and has no automatic rollback or user-data recovery promise. Deprovisioning, all-user removal and post-update reinstallation prevention are separate research/test milestones. Keep Store, App Installer, Xbox, WebView2, Windows security and shared frameworks untouched.

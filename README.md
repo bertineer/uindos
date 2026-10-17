@@ -65,3 +65,12 @@ Preview the curated dark Windows/app color modes and solid-black desktop with
 normal Explorer user; restore captured managed state with `-Undo <transaction-guid>`.
 The [appearance guide](docs/APPEARANCE.md) describes private journals, native
 desktop behavior and validation limits.
+
+### Search suggestions
+
+Preview the current-user search-box suggestions policy with
+`pwsh -NoProfile -File ./bin/uindos-search-suggestions.ps1`. Apply/Undo run as
+the same desktop account in a temporary elevated policy command, with private
+journals. The [Search guide](docs/SEARCH-SUGGESTIONS.md)
+separates documented File Explorer history behavior from observed Start web
+results; local Search and indexing remain available.
