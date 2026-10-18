@@ -1,0 +1,28 @@
+name: SysMain preflight tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/foundation/SysMainPreflight.ps1'
+      - 'bin/uindos-sysmain-preflight.ps1'
+      - 'tests/sysmain-preflight-mock.ps1'
+      - '.github/workflows/sysmain-preflight-tests.yml'
+  pull_request:
+    paths:
+      - 'src/foundation/SysMainPreflight.ps1'
+      - 'bin/uindos-sysmain-preflight.ps1'
+      - 'tests/sysmain-preflight-mock.ps1'
+      - '.github/workflows/sysmain-preflight-tests.yml'
+permissions:
+  contents: read
+jobs:
+  preflight:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mocked SysMain state and failure cases
+        shell: pwsh
+        run: ./tests/sysmain-preflight-mock.ps1
