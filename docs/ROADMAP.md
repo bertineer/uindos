@@ -112,6 +112,13 @@ comparable measurements and launch/regression checks remain prerequisites.
 Edge is still installed: current eligibility and the unchanged installer do
 not resolve its earlier exit93 refusal. WebView2 and its updater are preserved.
 
+A later [operator-supplied DeviceRegion experiment](research/EDGE-DEVICE-REGION-2026-10-17.md)
+also failed: the proposed registry write was denied even through the renamed
+inbox PowerShell copy. The browser uninstaller did not run. Original DWORD244
+remained, the owned copy was removed, and preserved-component checks passed.
+Native EEA uninstall and domain deployment policy have distinct applicability;
+temporary-region removal/return-to-US persistence remains unproved.
+
 The [post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md)
 completed 61 samples over five minutes with operator-attested quiet-session
 context and unknown background update/scan activity. Peak used physical RAM was
