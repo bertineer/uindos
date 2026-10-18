@@ -119,6 +119,14 @@ remained, the owned copy was removed, and preserved-component checks passed.
 Native EEA uninstall and domain deployment policy have distinct applicability;
 temporary-region removal/return-to-US persistence remains unproved.
 
+The [SysMain preflight](SYSMAIN-PREFLIGHT.md) now collects exact read-only state,
+including delayed-start absence and SCM/registry consistency, before any trial.
+Normal/elevated VM observations and portable failure cases passed. The latest
+[post-reboot acceptance](research/POST-REBOOT-CHECKPOINT-2026-10-18.md) retained
+the selected native preferences, This PC/Gallery and local Search/Explorer
+behavior; the Search indexing banner remains inconsistent with native Indexing
+Options. Fresh enabled baseline A and any SysMain-off trial remain pending.
+
 The [post-reboot checkpoint](research/POST-REBOOT-CHECKPOINT-2026-10-17.md)
 completed 61 samples over five minutes with operator-attested quiet-session
 context and unknown background update/scan activity. Peak used physical RAM was
